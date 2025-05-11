@@ -126,7 +126,7 @@ export default function MedicalGuidePage() {
                 <CardContent className="space-y-4 pt-6">
                   <div className="mb-4 rounded-xl overflow-hidden">
                     <img
-                      src="/placeholder.svg?key=1m9pg"
+                      src="/cpr-chest-compression.png"
                       alt="심폐소생술 가슴 압박 방법"
                       className="w-full h-auto object-cover"
                     />
@@ -293,7 +293,7 @@ export default function MedicalGuidePage() {
                 <CardContent className="space-y-4 pt-6">
                   <div className="mb-4 rounded-xl overflow-hidden">
                     <img
-                      src="/direct-pressure-wound.png"
+                      src="/bleeding-wound-direct-pressure.png"
                       alt="상처 직접 압박 방법"
                       className="w-full h-auto object-cover"
                     />
@@ -445,7 +445,7 @@ export default function MedicalGuidePage() {
                 <CardContent className="space-y-4 pt-6">
                   <div className="mb-4 rounded-xl overflow-hidden">
                     <img
-                      src="/fracture-splinting.png"
+                      src="/placeholder.svg?key=6kps2"
                       alt="골절 부위 고정 방법"
                       className="w-full h-auto object-cover"
                     />
@@ -522,7 +522,7 @@ export default function MedicalGuidePage() {
                 <CardContent className="space-y-4 pt-6">
                   <div className="mb-4 rounded-xl overflow-hidden">
                     <img
-                      src="/stroke-fast-method.png"
+                      src="/fast-stroke-recognition.png"
                       alt="뇌졸중 FAST 인지법"
                       className="w-full h-auto object-cover"
                     />
@@ -592,9 +592,6 @@ export default function MedicalGuidePage() {
                       <li>호흡곤란, 식은땀, 메스꺼움</li>
                       <li>극심한 피로감, 어지러움</li>
                     </ul>
-                    <p className="text-sm text-gray-700 mt-2">
-                      심장마비 의심 시 즉시 119에 신고하고, 환자가 의식을 잃으면 심폐소생술을 시작하세요.
-                    </p>
                   </div>
                 </CardContent>
               </Card>
@@ -683,7 +680,7 @@ export default function MedicalGuidePage() {
               </li>
               <li className="flex items-start">
                 <CheckCircle2 className="w-4 h-4 text-green-500 mr-2 mt-0.5 flex-shrink-0" />
-                <span>가족 구성원의 알레르기, 복용 약물, 기저질환 정보 기록</span>
+                <span>가족 구성원의 의료 정보를 미리 등록하고, 응급 연락처를 설정해 두세요.</span>
               </li>
               <li className="flex items-start">
                 <CheckCircle2 className="w-4 h-4 text-green-500 mr-2 mt-0.5 flex-shrink-0" />

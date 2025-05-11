@@ -21,7 +21,6 @@ import {
 import Link from "next/link"
 import { useScreenSize } from "@/utils/responsive-utils"
 import { isFirstAppLaunch, markAppLaunched } from "@/utils/app-state-utils"
-import { useAuth } from "@/contexts/auth-context"
 
 export default function Home() {
   const [isLoading, setIsLoading] = useState(true)
@@ -29,7 +28,6 @@ export default function Home() {
   const [showSplash, setShowSplash] = useState(true)
   const { isMobile, isTablet } = useScreenSize()
   const logoSize = isMobile ? 180 : isTablet ? 200 : 250
-  const { isAuthenticated } = useAuth()
 
   useEffect(() => {
     // 앱 최초 실행 여부 확인
@@ -68,28 +66,8 @@ export default function Home() {
   return (
     <MobileLayout showHeader={false}>
       <div className="container px-4 py-6 mx-auto">
-        {/* 로그인/회원가입 버튼 - 로그인 상태에 따라 조건부 렌더링 */}
-        {!isAuthenticated() && (
-          <div className="flex justify-end mb-4">
-            <Link href="/login">
-              <Button variant="ghost" size={isMobile ? "sm" : "default"} className="text-gray-600 mr-2">
-                로그인
-              </Button>
-            </Link>
-            <Link href="/register">
-              <Button
-                variant="outline"
-                size={isMobile ? "sm" : "default"}
-                className="text-red-600 border-red-600 hover:bg-red-50"
-              >
-                회원가입
-              </Button>
-            </Link>
-          </div>
-        )}
-
         {/* 로고 섹션 - 더 크게 표시 */}
-        <div className="flex flex-col items-center justify-center mb-8 mt-2 sm:mb-10 sm:mt-4">
+        <div className="flex flex-col items-center justify-center mb-8 mt-8 sm:mb-10 sm:mt-8">
           <div className="relative">
             <div className="absolute -inset-1 bg-red-100 rounded-full blur-md opacity-70 animate-pulse-glow"></div>
             <HeartLogo className="relative mb-6 animate-bounce-slow" width={logoSize} height={logoSize} />
@@ -200,7 +178,7 @@ export default function Home() {
                     size="sm"
                     className="text-red-600 hover:text-red-700 p-0 h-auto flex items-center group text-xs sm:text-sm"
                   >
-                    내 정보 등록하러 가기{" "}
+                    의료 정보 등록하기{" "}
                     <ArrowRight className="w-3 h-3 ml-1 group-hover:translate-x-1 transition-transform duration-300" />
                   </Button>
                 </Link>
@@ -219,7 +197,7 @@ export default function Home() {
 
           <div className="grid grid-cols-1 gap-3 sm:gap-4 md:grid-cols-3">
             {/* 응급처치 가이드 */}
-            <Link href="/emergency-guide" className="block">
+            <Link href="/medical-guide" className="block">
               <Card className="border-0 shadow-md hover:shadow-lg transition-shadow duration-300 h-full hover:scale-[1.02] transform transition-transform">
                 <CardContent className="p-4 sm:p-6">
                   <div className="flex flex-col items-center text-center">

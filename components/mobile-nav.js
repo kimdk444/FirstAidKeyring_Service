@@ -5,10 +5,12 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Menu, X, User, MapPin, Scan, Home, Settings, AlertTriangle } from "lucide-react"
 import { usePathname } from "next/navigation"
+import { useAuth } from "@/contexts/auth-context"
 
 export function MobileNav() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const pathname = usePathname()
+  const { isAuthenticated, logout } = useAuth()
 
   // 모바일 메뉴가 열렸을 때 스크롤 방지
   useEffect(() => {
@@ -103,36 +105,51 @@ export function MobileNav() {
               NFC 스캔
             </Link>
             <Link
-              href="/mypage"
-              className={`text-xl font-medium flex items-center ${pathname === "/mypage" ? "text-red-600" : "text-gray-800 hover:text-red-600"} transition-colors`}
-              onClick={handleMenuItemClick}
-            >
-              <Settings className="w-5 h-5 mr-2" />
-              마이페이지
-            </Link>
-            <Link
-              href="/emergency"
-              className={`text-xl font-medium flex items-center ${pathname === "/emergency" ? "text-red-600" : "text-gray-800 hover:text-red-600"} transition-colors`}
+              href="/medical-guide"
+              className={`text-xl font-medium flex items-center ${pathname === "/medical-guide" ? "text-red-600" : "text-gray-800 hover:text-red-600"} transition-colors`}
               onClick={handleMenuItemClick}
             >
               <AlertTriangle className="w-5 h-5 mr-2" />
-              긴급 연락
+              응급처치 가이드
+            </Link>
+            <Link
+              href="/settings"
+              className={`text-xl font-medium flex items-center ${pathname === "/settings" ? "text-red-600" : "text-gray-800 hover:text-red-600"} transition-colors`}
+              onClick={handleMenuItemClick}
+            >
+              <Settings className="w-5 h-5 mr-2" />
+              설정
             </Link>
 
             <div className="pt-6 flex flex-col space-y-4 w-full px-12">
-              <Link href="/login" onClick={handleMenuItemClick}>
+              {isAuthenticated() ? (
                 <Button
                   variant="outline"
                   className="w-full rounded-xl border-red-200 text-red-600 hover:bg-red-50 py-2.5"
+                  onClick={() => {
+                    logout()
+                    handleMenuItemClick()
+                  }}
                 >
-                  로그인
+                  로그아웃
                 </Button>
-              </Link>
-              <Link href="/register" onClick={handleMenuItemClick}>
-                <Button className="w-full rounded-xl bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 text-white py-2.5">
-                  회원가입
-                </Button>
-              </Link>
+              ) : (
+                <>
+                  <Link href="/login" onClick={handleMenuItemClick}>
+                    <Button
+                      variant="outline"
+                      className="w-full rounded-xl border-red-200 text-red-600 hover:bg-red-50 py-2.5"
+                    >
+                      로그인
+                    </Button>
+                  </Link>
+                  <Link href="/register" onClick={handleMenuItemClick}>
+                    <Button className="w-full rounded-xl bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 text-white py-2.5">
+                      회원가입
+                    </Button>
+                  </Link>
+                </>
+              )}
             </div>
           </div>
         </div>

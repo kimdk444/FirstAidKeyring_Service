@@ -10,9 +10,6 @@ import { Card, CardContent, CardFooter } from "@/components/ui/card"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { AlertCircle, ArrowLeft, User, Mail, Lock, Eye, EyeOff } from "lucide-react"
 
-// 클라이언트 컴포넌트에서는 메타데이터를 정의하지 않음
-// 메타데이터는 layout.js 파일에서 정의
-
 export default function RegisterPage() {
   const [formData, setFormData] = useState({
     name: "",

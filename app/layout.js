@@ -3,6 +3,7 @@ import "./globals.css"
 import { MobileOptimizations } from "./mobile-optimizations"
 import { IconFallback } from "./icon-fallback"
 import { AuthProvider } from "@/contexts/auth-context"
+import { AuthButtons } from "@/components/auth-buttons"
 
 const inter = Inter({
   subsets: ["latin"],
@@ -43,57 +44,41 @@ export default function RootLayout({ children }) {
         <AuthProvider>
           <MobileOptimizations />
           <IconFallback />
+          <AuthButtons />
           {children}
           <script
             id="naver-map-script-checker"
             dangerouslySetInnerHTML={{
               __html: `
-    (function() {
-      function checkAndRemoveNaverMapScripts() {
-        var scripts = document.querySelectorAll('script');
-        var naverMapScripts = [];
-        
-        scripts.forEach(function(script) {
-          var src = script.getAttribute('src') || '';
-          if (src.includes('map.naver.com') || 
-              src.includes('maps.js') || 
-              src.includes('ncpKeyId=') ||
-              src.includes('ncpClientId=')) {
-            naverMapScripts.push(script);
-            console.log('네이버 맵 스크립트 발견:', src);
-          }
-        });
-        
-        if (naverMapScripts.length > 1) {
-          console.warn('중복된 네이버 맵 스크립트 발견:', naverMapScripts.length, '개');
-          // Keep only the first script, remove all others
-          for (var i = 1; i < naverMapScripts.length; i++) {
-            console.log('중복 스크립트 제거:', naverMapScripts[i].src);
-            naverMapScripts[i].parentNode.removeChild(naverMapScripts[i]);
-          }
-        }
+(function() {
+  function checkAndRemoveNaverMapScripts() {
+    var scripts = document.querySelectorAll('script');
+    var naverMapScripts = [];
+    
+    scripts.forEach(function(script) {
+      var src = script.getAttribute('src') || '';
+      if (src.includes('map.naver.com') || 
+          src.includes('maps.js')) {
+        naverMapScripts.push(script);
       }
-      
-      // Run immediately
-      checkAndRemoveNaverMapScripts();
-      
-      // Also run after DOM is loaded
-      if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', checkAndRemoveNaverMapScripts);
+    });
+    
+    if (naverMapScripts.length > 1) {
+      for (var i = 1; i < naverMapScripts.length; i++) {
+        naverMapScripts[i].parentNode.removeChild(naverMapScripts[i]);
       }
-      
-      // Set up a MutationObserver to catch dynamically added scripts
-      var observer = new MutationObserver(function(mutations) {
-        mutations.forEach(function(mutation) {
-          if (mutation.addedNodes.length) {
-            setTimeout(checkAndRemoveNaverMapScripts, 0);
-          }
-        });
-      });
-      
-      observer.observe(document.documentElement, { childList: true, subtree: true });
-    })();
-  `,
+    }
+  }
+  
+  // Run immediately
+  checkAndRemoveNaverMapScripts();
+  
+  // Also run after DOM is loaded
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', checkAndRemoveNaverMapScripts);
+  }
+})();
+`,
             }}
           />
         </AuthProvider>

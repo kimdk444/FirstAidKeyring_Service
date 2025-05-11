@@ -7,9 +7,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Loader2, Smartphone, AlertTriangle } from "lucide-react"
 import Link from "next/link"
 
-// 클라이언트 컴포넌트에서는 메타데이터를 정의하지 않음
-// 메타데이터는 layout.js 파일에서 정의
-
 export default function ScanPage() {
   const [scanning, setScanning] = useState(false)
   const [error, setError] = useState(null)
@@ -52,7 +49,7 @@ export default function ScanPage() {
     // 테스트를 위한 타임아웃 (실제 구현에서는 제거)
     setTimeout(() => {
       // 테스트용 환자 ID로 리디렉션
-      window.location.href = "/patient/p12345"
+      window.location.href = "/patient-info"
     }, 3000)
   }
 
@@ -88,12 +85,12 @@ export default function ScanPage() {
                   이 기기는 NFC를 지원하지 않습니다. NFC를 지원하는 기기로 시도해주세요.
                 </p>
                 <div className="mt-4">
-                  <Link href="/patient/p12345">
+                  <Link href="/patient-info">
                     <Button
                       variant="outline"
                       className="rounded-xl border-blue-200 text-blue-600 hover:bg-blue-50 transition-all duration-200"
                     >
-                      테스트 환자 정보 보기
+                      환자 정보 관리
                     </Button>
                   </Link>
                 </div>
@@ -130,12 +127,12 @@ export default function ScanPage() {
                   스캔 시작
                 </Button>
                 <div className="mt-4">
-                  <Link href="/patient/p12345">
+                  <Link href="/patient-info">
                     <Button
                       variant="outline"
                       className="w-full rounded-xl border-gray-200 text-gray-600 hover:bg-gray-50 transition-all duration-200 py-2.5"
                     >
-                      테스트 환자 정보 보기
+                      환자 정보 관리
                     </Button>
                   </Link>
                 </div>

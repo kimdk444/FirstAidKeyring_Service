@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Home, User, MapPin, Scan } from "lucide-react"
+import { Home, User, MapPin, Scan, Heart } from "lucide-react"
 import { useScreenSize } from "@/utils/responsive-utils"
 
 export function BottomNav() {
@@ -45,10 +45,10 @@ export function BottomNav() {
       active: pathname === "/aed-map",
     },
     {
-      href: "/mypage",
-      icon: <User className="w-5 h-5" />,
-      label: "마이페이지",
-      active: pathname === "/mypage",
+      href: "/medical-guide",
+      icon: <Heart className="w-5 h-5" />,
+      label: "응급 가이드",
+      active: pathname === "/medical-guide",
     },
   ]
 

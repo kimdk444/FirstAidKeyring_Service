@@ -4,8 +4,9 @@ import Link from "next/link"
 import Image from "next/image"
 import { MobileNav } from "./mobile-nav"
 import { useAuth } from "@/contexts/auth-context"
-import { User, LogOut } from "lucide-react"
+import { User, LogOut, Settings } from "lucide-react"
 import { useState } from "react"
+import { Button } from "@/components/ui/button"
 
 export function AppHeader() {
   const { user, logout, isAuthenticated } = useAuth()
@@ -18,21 +19,27 @@ export function AppHeader() {
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-white shadow-sm h-16 safe-area-padding-top">
       <div className="flex items-center justify-between h-full px-4">
-        <Link href="/" className="flex items-center">
-          <div className="relative w-9 h-9 mr-2">
-            <Image
-              src="/images/logo.png"
-              alt="First Aid Keyring Logo"
-              width={36}
-              height={36}
-              className="object-contain"
-              priority
-            />
-          </div>
-          <span className="font-bold text-lg text-red-600">First Aid Keyring</span>
-        </Link>
-
         <div className="flex items-center">
+          <Link href="/settings" className="mr-3">
+            <Settings className="w-5 h-5 text-gray-600 hover:text-red-600 transition-colors" />
+          </Link>
+
+          <Link href="/" className="flex items-center">
+            <div className="relative w-9 h-9 mr-2">
+              <Image
+                src="/images/logo.png"
+                alt="First Aid Keyring Logo"
+                width={36}
+                height={36}
+                className="object-contain"
+                priority
+              />
+            </div>
+            <span className="font-bold text-lg text-red-600">First Aid Keyring</span>
+          </Link>
+        </div>
+
+        <div className="flex items-center gap-2">
           {isAuthenticated() ? (
             <div className="relative">
               <button
@@ -61,7 +68,23 @@ export function AppHeader() {
                 </div>
               )}
             </div>
-          ) : null}
+          ) : (
+            <div className="hidden sm:flex items-center gap-2">
+              <Link href="/login">
+                <Button variant="outline" size="sm" className="h-8 border-red-200 text-red-600 hover:bg-red-50">
+                  로그인
+                </Button>
+              </Link>
+              <Link href="/register">
+                <Button
+                  size="sm"
+                  className="h-8 bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 text-white"
+                >
+                  회원가입
+                </Button>
+              </Link>
+            </div>
+          )}
           <MobileNav />
         </div>
       </div>

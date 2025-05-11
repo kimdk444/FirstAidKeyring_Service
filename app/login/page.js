@@ -176,7 +176,7 @@ export default function LoginPage() {
           </CardFooter>
         </Card>
 
-        <div className="flex flex-col items-center space-y-4">
+        <div className="flex justify-center">
           <Link
             href="/"
             className="flex items-center text-xs sm:text-sm text-gray-600 hover:text-red-600 transition-colors duration-200"
@@ -184,26 +184,6 @@ export default function LoginPage() {
             <ArrowLeft className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
             홈으로 돌아가기
           </Link>
-
-          <div className="text-center text-xs text-gray-500">
-            <p>
-              로그인함으로써{" "}
-              <Link
-                href="/terms"
-                className="font-medium text-red-600 hover:text-red-500 transition-colors duration-200"
-              >
-                서비스 이용약관
-              </Link>{" "}
-              및{" "}
-              <Link
-                href="/privacy"
-                className="font-medium text-red-600 hover:text-red-500 transition-colors duration-200"
-              >
-                개인정보 처리방침
-              </Link>
-              에 동의하게 됩니다
-            </p>
-          </div>
         </div>
       </div>
     </div>

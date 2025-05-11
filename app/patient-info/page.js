@@ -9,11 +9,21 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { AlertCircle, Save, User, Calendar, Droplet, FileText, Phone } from "lucide-react"
+import {
+  AlertTriangle,
+  Save,
+  User,
+  Calendar,
+  Droplet,
+  FileText,
+  Phone,
+  MessageSquare,
+  Heart,
+  AlertCircle,
+  MapPin,
+} from "lucide-react"
 import { MobileLayout } from "@/components/mobile-layout"
-
-// 클라이언트 컴포넌트에서는 메타데이터를 정의하지 않음
-// 메타데이터는 layout.js 파일에서 정의
+import Link from "next/link"
 
 export default function PatientInfoPage() {
   const [formData, setFormData] = useState({
@@ -32,6 +42,11 @@ export default function PatientInfoPage() {
   const [success, setSuccess] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [activeTab, setActiveTab] = useState("basic")
+  const [location, setLocation] = useState(null)
+  const [emergencyContacts, setEmergencyContacts] = useState([
+    { id: 1, name: "홍부모", relationship: "부모", phone: "010-9876-5432" },
+    { id: 2, name: "김의사", relationship: "주치의", phone: "010-1111-2222" },
+  ])
 
   // Force scroll to top on page load
   useEffect(() => {
@@ -42,7 +57,35 @@ export default function PatientInfoPage() {
     document.body.style.position = "static"
     document.body.style.height = "auto"
     document.body.style.width = "100%"
+
+    // 현재 위치 가져오기
+    getCurrentLocation()
   }, [])
+
+  const getCurrentLocation = () => {
+    if (!navigator.geolocation) {
+      console.log("이 브라우저에서는 위치 정보를 지원하지 않습니다.")
+      return
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      // 성공 콜백
+      (position) => {
+        const { latitude, longitude } = position.coords
+        setLocation({ lat: latitude, lng: longitude })
+      },
+      // 오류 콜백
+      (error) => {
+        console.error("위치 정보 가져오기 오류:", error)
+      },
+      // 옵션
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0,
+      },
+    )
+  }
 
   const handleChange = (e) => {
     const { name, value } = e.target
@@ -96,10 +139,35 @@ export default function PatientInfoPage() {
     }
   }
 
+  const callEmergency = () => {
+    window.location.href = "tel:119"
+  }
+
+  const sendSMS = (phone) => {
+    const message = `[긴급] ${formData.name || "환자"}님이 응급 상황입니다. ${location ? `현재 위치: https://map.naver.com/v5/entry/place/location?lng=${location.lng}&lat=${location.lat}` : "위치 정보 없음"}`
+    window.location.href = `sms:${phone}?body=${encodeURIComponent(message)}`
+  }
+
+  const callContact = (phone) => {
+    window.location.href = `tel:${phone}`
+  }
+
   return (
     <MobileLayout>
       <div className="container px-4 py-8 sm:py-12 mx-auto">
         <div className="max-w-3xl mx-auto">
+          {/* 119 긴급 전화 버튼 */}
+          <div className="mb-6">
+            <Button
+              onClick={callEmergency}
+              className="w-full h-14 bg-red-600 hover:bg-red-700 rounded-xl flex items-center justify-center gap-3 text-lg font-bold"
+            >
+              <AlertTriangle className="h-6 w-6" />
+              119 긴급 전화
+              <Phone className="h-6 w-6" />
+            </Button>
+          </div>
+
           <div className="text-center mb-8 sm:mb-12">
             <h1 className="text-2xl sm:text-3xl font-bold mb-4">환자 인적사항</h1>
             <div className="w-24 h-1 bg-gradient-to-r from-red-500 to-red-300 mx-auto rounded-full mb-4"></div>
@@ -332,7 +400,7 @@ export default function PatientInfoPage() {
               </TabsContent>
 
               <TabsContent value="emergency">
-                <Card className="border-0 shadow-lg rounded-2xl overflow-hidden bg-white">
+                <Card className="border-0 shadow-lg rounded-2xl overflow-hidden bg-white mb-6">
                   <CardHeader className="bg-gradient-to-r from-green-50 to-white pb-4">
                     <CardTitle className="flex items-center text-lg sm:text-xl">
                       <Phone className="w-4 h-4 sm:w-5 sm:h-5 mr-2 text-green-500" />
@@ -402,6 +470,71 @@ export default function PatientInfoPage() {
                     </Button>
                   </CardFooter>
                 </Card>
+
+                {/* 등록된 비상 연락처 목록 */}
+                <div className="mb-6">
+                  <h2 className="text-lg font-bold mb-4 flex items-center">
+                    <Phone className="h-5 w-5 mr-2 text-red-500" />
+                    등록된 비상 연락처
+                  </h2>
+                  <div className="space-y-4">
+                    {emergencyContacts.map((contact) => (
+                      <Card key={contact.id} className="border-0 shadow-md rounded-xl overflow-hidden bg-white">
+                        <CardContent className="p-4">
+                          <div className="flex justify-between items-center mb-2">
+                            <div>
+                              <h3 className="font-bold">{contact.name}</h3>
+                              <p className="text-sm text-gray-600">{contact.relationship}</p>
+                            </div>
+                            <div className="flex gap-2">
+                              <Button
+                                onClick={() => sendSMS(contact.phone)}
+                                size="sm"
+                                variant="outline"
+                                className="h-10 w-10 p-0 rounded-full border-gray-200"
+                              >
+                                <MessageSquare className="h-5 w-5 text-blue-600" />
+                              </Button>
+                              <Button
+                                onClick={() => callContact(contact.phone)}
+                                size="sm"
+                                className="h-10 w-10 p-0 rounded-full bg-green-600 hover:bg-green-700"
+                              >
+                                <Phone className="h-5 w-5" />
+                              </Button>
+                            </div>
+                          </div>
+                          <p className="text-sm">{contact.phone}</p>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                </div>
+
+                {/* 빠른 응급 서비스 */}
+                <div className="mb-6">
+                  <h2 className="text-lg font-bold mb-4 flex items-center">
+                    <Heart className="h-5 w-5 mr-2 text-red-500" />
+                    빠른 응급 서비스
+                  </h2>
+                  <div className="grid grid-cols-2 gap-4">
+                    <Link href="/aed-map">
+                      <Button className="w-full h-16 bg-red-600 hover:bg-red-700 text-white rounded-xl flex flex-col items-center justify-center">
+                        <MapPin className="h-6 w-6 mb-1" />
+                        <span className="text-sm">AED 위치 찾기</span>
+                      </Button>
+                    </Link>
+                    <Link href="/medical-guide">
+                      <Button
+                        variant="outline"
+                        className="w-full h-16 border-purple-200 hover:bg-purple-50 rounded-xl flex flex-col items-center justify-center"
+                      >
+                        <Heart className="h-6 w-6 text-purple-600 mb-1" />
+                        <span className="text-sm">응급처치 가이드</span>
+                      </Button>
+                    </Link>
+                  </div>
+                </div>
               </TabsContent>
             </form>
           </Tabs>
