@@ -17,10 +17,13 @@ import {
   ArrowRight,
   Info,
   Wifi,
+  Settings,
 } from "lucide-react"
 import Link from "next/link"
 import { useScreenSize } from "@/utils/responsive-utils"
 import { isFirstAppLaunch, markAppLaunched } from "@/utils/app-state-utils"
+import { useAuth } from "@/contexts/auth-context"
+import { useRouter } from "next/navigation"
 
 export default function Home() {
   const [isLoading, setIsLoading] = useState(true)
@@ -28,6 +31,8 @@ export default function Home() {
   const [showSplash, setShowSplash] = useState(true)
   const { isMobile, isTablet } = useScreenSize()
   const logoSize = isMobile ? 180 : isTablet ? 200 : 250
+  const { user, logout } = useAuth()
+  const router = useRouter()
 
   useEffect(() => {
     // 앱 최초 실행 여부 확인
@@ -65,7 +70,49 @@ export default function Home() {
 
   return (
     <MobileLayout showHeader={false}>
-      <div className="container px-4 py-6 mx-auto">
+      {/* 로그인, 회원가입, 설정 버튼 */}
+      <div className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-4 py-3 bg-white/80 backdrop-blur-sm border-b border-gray-100">
+        <Link href="/settings">
+          <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full">
+            <Settings className="h-5 w-5 text-gray-600" />
+            <span className="sr-only">설정</span>
+          </Button>
+        </Link>
+
+        <div className="flex items-center gap-2">
+          {user ? (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={logout}
+              className="text-sm h-9 px-3 rounded-full border-red-200 text-red-600 hover:bg-red-50"
+            >
+              로그아웃
+            </Button>
+          ) : (
+            <>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => router.push("/login")}
+                className="text-sm h-9 px-3 rounded-full text-gray-600"
+              >
+                로그인
+              </Button>
+              <Button
+                variant="default"
+                size="sm"
+                onClick={() => router.push("/register")}
+                className="text-sm h-9 px-3 rounded-full bg-red-500 hover:bg-red-600 text-white"
+              >
+                회원가입
+              </Button>
+            </>
+          )}
+        </div>
+      </div>
+
+      <div className="container px-4 py-6 mx-auto mt-12">
         {/* 로고 섹션 - 더 크게 표시 */}
         <div className="flex flex-col items-center justify-center mb-8 mt-8 sm:mb-10 sm:mt-8">
           <div className="relative">

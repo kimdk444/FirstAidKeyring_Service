@@ -3,7 +3,6 @@ import "./globals.css"
 import { MobileOptimizations } from "./mobile-optimizations"
 import { IconFallback } from "./icon-fallback"
 import { AuthProvider } from "@/contexts/auth-context"
-import { AuthButtons } from "@/components/auth-buttons"
 
 const inter = Inter({
   subsets: ["latin"],
@@ -44,7 +43,6 @@ export default function RootLayout({ children }) {
         <AuthProvider>
           <MobileOptimizations />
           <IconFallback />
-          <AuthButtons />
           {children}
           <script
             id="naver-map-script-checker"
