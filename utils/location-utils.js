@@ -49,20 +49,15 @@ export async function coordsToAddress(lng, lat) {
         }
       }
 
-      // 주소가 여전히 없는 경우 좌표 정보 추가
-      if (address === "주소 정보 없음") {
-        address = `위도: ${lat.toFixed(6)}, 경도: ${lng.toFixed(6)}`
-      }
-
       return address
     }
 
-    // 주소 정보가 없는 경우 좌표 정보 반환
-    return `위도: ${lat.toFixed(6)}, 경도: ${lng.toFixed(6)}`
+    // 주소 정보가 없는 경우 기본 메시지 반환
+    return "주소 정보를 찾을 수 없습니다"
   } catch (error) {
     console.error("주소 변환 오류:", error)
-    // 오류 발생 시 좌표 정보 반환
-    return `위도: ${lat.toFixed(6)}, 경도: ${lng.toFixed(6)}`
+    // 오류 발생 시 기본 메시지 반환
+    return "주소 정보를 찾을 수 없습니다"
   }
 }
 

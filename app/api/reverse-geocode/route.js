@@ -1,20 +1,20 @@
 import { NextResponse } from "next/server"
 
 export async function GET(request) {
+  const { searchParams } = new URL(request.url)
+  const coords = searchParams.get("coords")
+
+  if (!coords) {
+    return NextResponse.json({ error: "좌표가 제공되지 않았습니다." }, { status: 400 })
+  }
+
+  const [longitude, latitude] = coords.split(",")
+
+  if (!longitude || !latitude) {
+    return NextResponse.json({ error: "잘못된 좌표 형식입니다." }, { status: 400 })
+  }
+
   try {
-    const { searchParams } = new URL(request.url)
-    const coords = searchParams.get("coords")
-
-    if (!coords) {
-      return NextResponse.json({ error: "좌표 정보가 필요합니다." }, { status: 400 })
-    }
-
-    const [lng, lat] = coords.split(",").map(Number)
-
-    if (isNaN(lng) || isNaN(lat)) {
-      return NextResponse.json({ error: "유효하지 않은 좌표 형식입니다." }, { status: 400 })
-    }
-
     // 네이버 지도 API 키
     const clientId = process.env.NEXT_PUBLIC_NAVER_MAPS_CLIENT_ID
     const clientSecret = process.env.NAVER_MAPS_CLIENT_SECRET
@@ -25,9 +25,7 @@ export async function GET(request) {
     }
 
     // 네이버 지도 API 호출
-    const url = `https://naveropenapi.apigw.ntruss.com/map-reversegeocode/v2/gc?coords=${lng},${lat}&output=json`
-
-    console.log("Reverse geocoding request URL:", url)
+    const url = `https://naveropenapi.apigw.ntruss.com/map-reversegeocode/v2/gc?coords=${longitude},${latitude}&output=json`
 
     const response = await fetch(url, {
       headers: {
@@ -37,18 +35,13 @@ export async function GET(request) {
     })
 
     if (!response.ok) {
-      console.error("네이버 API 응답 오류:", response.status, response.statusText)
-      return NextResponse.json({ error: "네이버 API 응답 오류" }, { status: response.status })
+      throw new Error(`API 응답 오류: ${response.status}`)
     }
 
     const data = await response.json()
-
-    // 응답 데이터 로깅
-    console.log("Naver API response:", JSON.stringify(data).substring(0, 200) + "...")
-
     return NextResponse.json(data)
   } catch (error) {
-    console.error("역지오코딩 처리 오류:", error)
-    return NextResponse.json({ error: "역지오코딩 처리 중 오류가 발생했습니다." }, { status: 500 })
+    console.error("역지오코딩 오류:", error)
+    return NextResponse.json({ error: "주소 변환 중 오류가 발생했습니다." }, { status: 500 })
   }
 }
