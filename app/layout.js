@@ -15,6 +15,10 @@ export const metadata = {
   description:
     "NFC 기술을 활용한 응급 의료 정보 서비스로 응급 상황에서 신속하게 중요한 의료 정보에 접근할 수 있습니다.",
   generator: "v0.dev",
+  icons: {
+    icon: "/images/logo.png",
+    apple: "/images/logo.png",
+  },
 }
 
 export const viewport = {
@@ -38,6 +42,8 @@ export default function RootLayout({ children }) {
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <link rel="manifest" href="/manifest.json" />
+        <link rel="icon" href="/images/logo.png" />
+        <link rel="apple-touch-icon" href="/images/logo.png" />
       </head>
       <body className={inter.className + " min-h-screen bg-background font-sans antialiased"}>
         <AuthProvider>
