@@ -445,7 +445,7 @@ export default function MedicalGuidePage() {
                 <CardContent className="space-y-4 pt-6">
                   <div className="mb-4 rounded-xl overflow-hidden">
                     <img
-                      src="/placeholder.svg?key=6kps2"
+                      src="/fracture-splinting.png"
                       alt="골절 부위 고정 방법"
                       className="w-full h-auto object-cover"
                     />
@@ -522,7 +522,7 @@ export default function MedicalGuidePage() {
                 <CardContent className="space-y-4 pt-6">
                   <div className="mb-4 rounded-xl overflow-hidden">
                     <img
-                      src="/fast-stroke-recognition.png"
+                      src="/stroke-fast-method.png"
                       alt="뇌졸중 FAST 인지법"
                       className="w-full h-auto object-cover"
                     />
