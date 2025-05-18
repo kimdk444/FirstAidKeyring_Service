@@ -1,43 +1,58 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import Image from "next/image"
+import { AlertCircle, ArrowLeft, Eye, EyeOff } from "lucide-react"
+import { useRouter, useSearchParams } from "next/navigation"
+import { useAuth } from "@/contexts/auth-context"
+
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardFooter } from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { AlertCircle, ArrowLeft, User, Mail, Lock, Eye, EyeOff } from "lucide-react"
+import { Checkbox } from "@/components/ui/checkbox"
 
 export default function RegisterPage() {
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    password: "",
-    confirmPassword: "",
-  })
+  const [name, setName] = useState("")
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+  const [confirmPassword, setConfirmPassword] = useState("")
+  const [agreeTerms, setAgreeTerms] = useState(false)
   const [error, setError] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const redirectPath = searchParams.get("redirect") || "/"
+  const { login, isAuthenticated } = useAuth()
 
-  const handleChange = (e) => {
-    const { name, value } = e.target
-    setFormData((prev) => ({ ...prev, [name]: value }))
-  }
+  // 이미 로그인한 경우 리디렉션
+  useEffect(() => {
+    if (isAuthenticated()) {
+      router.push(redirectPath)
+    }
+  }, [isAuthenticated, router, redirectPath])
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError("")
 
-    if (!formData.name || !formData.email || !formData.password || !formData.confirmPassword) {
+    // 유효성 검사
+    if (!name || !email || !password || !confirmPassword) {
       setError("모든 필드를 입력해주세요")
       return
     }
 
-    if (formData.password !== formData.confirmPassword) {
+    if (password !== confirmPassword) {
       setError("비밀번호가 일치하지 않습니다")
+      return
+    }
+
+    if (!agreeTerms) {
+      setError("이용약관에 동의해주세요")
       return
     }
 
@@ -45,13 +60,22 @@ export default function RegisterPage() {
 
     try {
       // 실제 회원가입 로직 구현
-      console.log("회원가입 정보:", formData)
+      console.log("회원가입 정보:", name, email, password)
 
       // API 호출 시뮬레이션
       await new Promise((resolve) => setTimeout(resolve, 1000))
 
-      // 회원가입 성공 후 로그인 페이지로 리디렉션
-      window.location.href = "/login"
+      // 회원가입 성공 - 사용자 정보 저장 및 자동 로그인
+      const userData = {
+        name: name,
+        email: email,
+        id: "user_" + Math.random().toString(36).substr(2, 9),
+      }
+
+      login(userData)
+
+      // 회원가입 성공 후 리디렉션 경로로 이동
+      router.push(redirectPath)
     } catch (err) {
       setError("회원가입 중 오류가 발생했습니다")
     } finally {
@@ -72,20 +96,25 @@ export default function RegisterPage() {
                   width={80}
                   height={80}
                   className="object-contain drop-shadow-lg"
+                  priority
                 />
               </div>
             </div>
           </Link>
-          <h2 className="mt-4 text-2xl sm:text-3xl font-extrabold text-gray-900">회원가입</h2>
+          <h2 className="mt-4 text-2xl sm:text-3xl font-extrabold text-gray-900">FirstAidKeyring</h2>
           <p className="mt-2 text-sm text-gray-600">
-            응급상황, 단 한 번의 태그로
+            생명을 지키는 작은 태그
             <br />
-            TAG HERE. 당신을 위한 안전.
+            TAG HERE — NFC로 연결되는 응급 정보
           </p>
         </div>
 
         <Card className="border-0 shadow-xl bg-white/80 backdrop-blur-sm rounded-2xl">
-          <CardContent className="pt-6">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-xl sm:text-2xl font-bold text-center">회원가입</CardTitle>
+            <CardDescription className="text-center">FirstAidKeyring 서비스에 가입하세요</CardDescription>
+          </CardHeader>
+          <CardContent className="pt-4">
             {error && (
               <Alert variant="destructive" className="mb-4 bg-red-50 border-red-200">
                 <AlertCircle className="h-4 w-4" />
@@ -94,47 +123,45 @@ export default function RegisterPage() {
               </Alert>
             )}
 
-            <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
+            {redirectPath !== "/" && (
+              <Alert className="mb-4 bg-blue-50 border-blue-200">
+                <AlertCircle className="h-4 w-4 text-blue-500" />
+                <AlertTitle className="text-blue-700">알림</AlertTitle>
+                <AlertDescription className="text-blue-600">
+                  이 기능을 사용하려면 회원가입이 필요합니다.
+                </AlertDescription>
+              </Alert>
+            )}
+
+            <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="name" className="text-sm font-medium">
                   이름
                 </Label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                    <User className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400" />
-                  </div>
-                  <Input
-                    id="name"
-                    name="name"
-                    type="text"
-                    placeholder="이름을 입력하세요"
-                    value={formData.name}
-                    onChange={handleChange}
-                    required
-                    className="h-10 sm:h-12 pl-10 rounded-xl border-gray-200 focus:border-red-300 focus:ring focus:ring-red-200 focus:ring-opacity-50 transition-all duration-200"
-                  />
-                </div>
+                <Input
+                  id="name"
+                  type="text"
+                  placeholder="홍길동"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  required
+                  className="h-10 sm:h-12 rounded-xl border-gray-200 focus:border-red-300 focus:ring focus:ring-red-200 focus:ring-opacity-50 transition-all duration-200"
+                />
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="email" className="text-sm font-medium">
                   이메일
                 </Label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                    <Mail className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400" />
-                  </div>
-                  <Input
-                    id="email"
-                    name="email"
-                    type="email"
-                    placeholder="example@email.com"
-                    value={formData.email}
-                    onChange={handleChange}
-                    required
-                    className="h-10 sm:h-12 pl-10 rounded-xl border-gray-200 focus:border-red-300 focus:ring focus:ring-red-200 focus:ring-opacity-50 transition-all duration-200"
-                  />
-                </div>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="example@email.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  className="h-10 sm:h-12 rounded-xl border-gray-200 focus:border-red-300 focus:ring focus:ring-red-200 focus:ring-opacity-50 transition-all duration-200"
+                />
               </div>
 
               <div className="space-y-2">
@@ -142,17 +169,13 @@ export default function RegisterPage() {
                   비밀번호
                 </Label>
                 <div className="relative">
-                  <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                    <Lock className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400" />
-                  </div>
                   <Input
                     id="password"
-                    name="password"
                     type={showPassword ? "text" : "password"}
-                    value={formData.password}
-                    onChange={handleChange}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
                     required
-                    className="h-10 sm:h-12 pl-10 pr-10 rounded-xl border-gray-200 focus:border-red-300 focus:ring focus:ring-red-200 focus:ring-opacity-50 transition-all duration-200"
+                    className="h-10 sm:h-12 rounded-xl border-gray-200 focus:border-red-300 focus:ring focus:ring-red-200 focus:ring-opacity-50 transition-all duration-200 pr-10"
                   />
                   <button
                     type="button"
@@ -174,23 +197,19 @@ export default function RegisterPage() {
                   비밀번호 확인
                 </Label>
                 <div className="relative">
-                  <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                    <Lock className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400" />
-                  </div>
                   <Input
                     id="confirmPassword"
-                    name="confirmPassword"
                     type={showConfirmPassword ? "text" : "password"}
-                    value={formData.confirmPassword}
-                    onChange={handleChange}
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
                     required
-                    className="h-10 sm:h-12 pl-10 pr-10 rounded-xl border-gray-200 focus:border-red-300 focus:ring focus:ring-red-200 focus:ring-opacity-50 transition-all duration-200"
+                    className="h-10 sm:h-12 rounded-xl border-gray-200 focus:border-red-300 focus:ring focus:ring-red-200 focus:ring-opacity-50 transition-all duration-200 pr-10"
                   />
                   <button
                     type="button"
                     className="absolute inset-y-0 right-0 flex items-center pr-3"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    aria-label={showConfirmPassword ? "비밀번호 확인 숨기기" : "비밀번호 확인 표시"}
+                    aria-label={showConfirmPassword ? "비밀번호 숨기기" : "비밀번호 표시"}
                   >
                     {showConfirmPassword ? (
                       <EyeOff className="h-4 w-4 text-gray-400" />
@@ -201,12 +220,39 @@ export default function RegisterPage() {
                 </div>
               </div>
 
+              <div className="flex items-start space-x-2 pt-2">
+                <Checkbox
+                  id="terms"
+                  checked={agreeTerms}
+                  onCheckedChange={(checked) => setAgreeTerms(checked === true)}
+                  className="mt-1 data-[state=checked]:bg-red-600 data-[state=checked]:border-red-600"
+                />
+                <div className="grid gap-1.5 leading-none">
+                  <label
+                    htmlFor="terms"
+                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                  >
+                    이용약관 및 개인정보 처리방침에 동의합니다
+                  </label>
+                  <p className="text-xs text-gray-500">
+                    <Link href="/terms" className="text-red-600 hover:text-red-500 underline">
+                      이용약관
+                    </Link>{" "}
+                    및{" "}
+                    <Link href="/privacy" className="text-red-600 hover:text-red-500 underline">
+                      개인정보 처리방침
+                    </Link>
+                    을 읽고 동의합니다.
+                  </p>
+                </div>
+              </div>
+
               <Button
                 type="submit"
-                className="w-full h-10 sm:h-12 rounded-xl bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 text-white shadow-md hover:shadow-lg transition-all duration-200 text-sm sm:text-base"
+                className="w-full h-10 sm:h-12 rounded-xl bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 text-white shadow-md hover:shadow-lg transition-all duration-200 text-sm sm:text-base mt-4"
                 disabled={isLoading}
               >
-                {isLoading ? "처리 중..." : "회원가입"}
+                {isLoading ? "가입 중..." : "회원가입"}
               </Button>
             </form>
           </CardContent>
@@ -214,7 +260,7 @@ export default function RegisterPage() {
             <p className="text-xs sm:text-sm text-gray-600">
               이미 계정이 있으신가요?{" "}
               <Link
-                href="/login"
+                href={`/login${redirectPath !== "/" ? `?redirect=${redirectPath}` : ""}`}
                 className="font-medium text-red-600 hover:text-red-500 transition-colors duration-200"
               >
                 로그인

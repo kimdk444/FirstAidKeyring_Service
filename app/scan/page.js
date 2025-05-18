@@ -1,16 +1,27 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import { MobileLayout } from "@/components/mobile-layout"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Loader2, Smartphone, AlertTriangle } from "lucide-react"
 import Link from "next/link"
+import { useAuth } from "@/contexts/auth-context"
 
 export default function ScanPage() {
   const [scanning, setScanning] = useState(false)
   const [error, setError] = useState(null)
   const [nfcSupported, setNfcSupported] = useState(null)
+  const { isAuthenticated, loading } = useAuth()
+  const router = useRouter()
+
+  // 인증 상태 확인 및 리디렉션
+  useEffect(() => {
+    if (!loading && !isAuthenticated()) {
+      router.push("/login?redirect=/scan")
+    }
+  }, [loading, isAuthenticated, router])
 
   // 페이지 로드 시 스크롤 위치 초기화 및 스타일 리셋
   useEffect(() => {
@@ -51,6 +62,18 @@ export default function ScanPage() {
       // 테스트용 환자 ID로 리디렉션
       window.location.href = "/patient-info"
     }, 3000)
+  }
+
+  // 로딩 중이거나 인증되지 않은 경우 로딩 표시
+  if (loading || !isAuthenticated()) {
+    return (
+      <MobileLayout>
+        <div className="container px-5 py-8 sm:py-12 mx-auto max-w-md flex flex-col items-center justify-center min-h-[60vh]">
+          <Loader2 className="h-8 w-8 animate-spin text-blue-600 mb-4" />
+          <p className="text-gray-600">인증 상태 확인 중...</p>
+        </div>
+      </MobileLayout>
+    )
   }
 
   return (

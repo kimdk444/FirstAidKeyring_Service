@@ -1,10 +1,10 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { AlertCircle, ArrowLeft, Eye, EyeOff } from "lucide-react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { useAuth } from "@/contexts/auth-context"
 
 import { Button } from "@/components/ui/button"
@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { SocialLoginButtons } from "@/components/social-login-buttons"
+import { Checkbox } from "@/components/ui/checkbox"
 
 export default function LoginPage() {
   const [email, setEmail] = useState("")
@@ -20,8 +20,18 @@ export default function LoginPage() {
   const [error, setError] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
+  const [rememberMe, setRememberMe] = useState(true)
   const router = useRouter()
-  const { login } = useAuth()
+  const searchParams = useSearchParams()
+  const redirectPath = searchParams.get("redirect") || "/"
+  const { login, isAuthenticated } = useAuth()
+
+  // 이미 로그인한 경우 리디렉션
+  useEffect(() => {
+    if (isAuthenticated()) {
+      router.push(redirectPath)
+    }
+  }, [isAuthenticated, router, redirectPath])
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -36,7 +46,7 @@ export default function LoginPage() {
 
     try {
       // 실제 로그인 로직 구현
-      console.log("로그인 정보:", email, password)
+      console.log("로그인 정보:", email, password, "자동 로그인:", rememberMe)
 
       // API 호출 시뮬레이션
       await new Promise((resolve) => setTimeout(resolve, 1000))
@@ -49,10 +59,10 @@ export default function LoginPage() {
         id: "user_" + Math.random().toString(36).substr(2, 9),
       }
 
-      login(userData)
+      login(userData, rememberMe)
 
-      // 로그인 성공 후 홈 화면으로 리디렉션
-      router.push("/")
+      // 로그인 성공 후 리디렉션 경로로 이동
+      router.push(redirectPath)
     } catch (err) {
       setError("이메일 또는 비밀번호가 올바르지 않습니다")
     } finally {
@@ -97,6 +107,14 @@ export default function LoginPage() {
                 <AlertCircle className="h-4 w-4" />
                 <AlertTitle>오류</AlertTitle>
                 <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
+
+            {redirectPath !== "/" && (
+              <Alert className="mb-4 bg-blue-50 border-blue-200">
+                <AlertCircle className="h-4 w-4 text-blue-500" />
+                <AlertTitle className="text-blue-700">알림</AlertTitle>
+                <AlertDescription className="text-blue-600">이 기능을 사용하려면 로그인이 필요합니다.</AlertDescription>
               </Alert>
             )}
 
@@ -152,6 +170,18 @@ export default function LoginPage() {
                 </div>
               </div>
 
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="remember-me"
+                  checked={rememberMe}
+                  onCheckedChange={setRememberMe}
+                  className="data-[state=checked]:bg-red-600 data-[state=checked]:border-red-600"
+                />
+                <Label htmlFor="remember-me" className="text-sm text-gray-600 cursor-pointer">
+                  로그인 상태 유지
+                </Label>
+              </div>
+
               <Button
                 type="submit"
                 className="w-full h-10 sm:h-12 rounded-xl bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 text-white shadow-md hover:shadow-lg transition-all duration-200 text-sm sm:text-base"
@@ -159,15 +189,13 @@ export default function LoginPage() {
               >
                 {isLoading ? "로그인 중..." : "로그인"}
               </Button>
-
-              <SocialLoginButtons />
             </form>
           </CardContent>
           <CardFooter className="flex justify-center pt-0">
             <p className="text-xs sm:text-sm text-gray-600">
               계정이 없으신가요?{" "}
               <Link
-                href="/register"
+                href={`/register${redirectPath !== "/" ? `?redirect=${redirectPath}` : ""}`}
                 className="font-medium text-red-600 hover:text-red-500 transition-colors duration-200"
               >
                 회원가입

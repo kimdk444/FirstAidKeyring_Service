@@ -18,6 +18,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
+// 기존 import 유지하고 Checkbox 추가
+import { Checkbox } from "@/components/ui/checkbox"
 
 export default function SettingsPage() {
   const router = useRouter()
@@ -42,6 +44,15 @@ export default function SettingsPage() {
     console.log("계정 삭제 처리")
     // 삭제 후 로그인 페이지로 리디렉션
     router.push("/login")
+  }
+
+  // 임시 auth 객체 (실제 환경에서는 context 또는 zustand/jotai 등 사용)
+  const auth = {
+    autoLogin: false, // 초기값 설정
+    setRememberMe: (checked) => {
+      console.log("자동 로그인 설정:", checked)
+      // 실제 로직에서는 쿠키, 로컬 스토리지 등에 저장
+    },
   }
 
   return (
@@ -156,6 +167,31 @@ export default function SettingsPage() {
               <Trash2 className="h-4 w-4 mr-2" />
               계정 삭제
             </Button>
+          </CardContent>
+        </Card>
+        <Card className="border-0 shadow-sm">
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center text-lg">
+              <Lock className="h-5 w-5 mr-2 text-orange-500" />
+              로그인 설정
+            </CardTitle>
+            <CardDescription>로그인 관련 설정을 관리합니다</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4 pt-0">
+            <div className="space-y-4">
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="auto-login"
+                  checked={auth.autoLogin}
+                  onCheckedChange={auth.setRememberMe}
+                  className="data-[state=checked]:bg-red-600 data-[state=checked]:border-red-600"
+                />
+                <Label htmlFor="auto-login" className="text-sm text-gray-600 cursor-pointer">
+                  로그인 상태 유지
+                </Label>
+              </div>
+              <p className="text-xs text-gray-500">활성화하면 브라우저를 닫았다 열어도 로그인 상태가 유지됩니다.</p>
+            </div>
           </CardContent>
         </Card>
       </div>

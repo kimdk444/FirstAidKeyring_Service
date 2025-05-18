@@ -1,543 +1,418 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
+import { MobileLayout } from "@/components/mobile-layout"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import {
-  AlertTriangle,
-  Save,
-  User,
-  Calendar,
-  Droplet,
-  FileText,
-  Phone,
-  MessageSquare,
-  Heart,
-  AlertCircle,
-  MapPin,
-} from "lucide-react"
-import { MobileLayout } from "@/components/mobile-layout"
-import Link from "next/link"
+import { Textarea } from "@/components/ui/textarea"
+import { Loader2, Plus, Trash2, Phone, MessageSquare } from "lucide-react"
+import { useAuth } from "@/contexts/auth-context"
 
 export default function PatientInfoPage() {
-  const [formData, setFormData] = useState({
-    name: "",
-    birthdate: "",
-    gender: "",
-    bloodType: "",
-    allergies: "",
-    medications: "",
-    conditions: "",
-    emergencyContact: "",
-    emergencyPhone: "",
-    notes: "",
-  })
-  const [error, setError] = useState("")
-  const [success, setSuccess] = useState("")
-  const [isLoading, setIsLoading] = useState(false)
+  const router = useRouter()
+  const { isAuthenticated, loading } = useAuth()
   const [activeTab, setActiveTab] = useState("basic")
-  const [location, setLocation] = useState(null)
-  const [emergencyContacts, setEmergencyContacts] = useState([
-    { id: 1, name: "홍부모", relationship: "부모", phone: "010-9876-5432" },
-    { id: 2, name: "김의사", relationship: "주치의", phone: "010-1111-2222" },
+  const [isSaving, setIsSaving] = useState(false)
+  const [saveMessage, setSaveMessage] = useState("")
+
+  // 기본 정보 상태
+  const [name, setName] = useState("")
+  const [birthdate, setBirthdate] = useState("")
+  const [gender, setGender] = useState("")
+  const [bloodType, setBloodType] = useState("")
+  const [height, setHeight] = useState("")
+  const [weight, setWeight] = useState("")
+
+  // 의료 정보 상태
+  const [allergies, setAllergies] = useState("")
+  const [medications, setMedications] = useState("")
+  const [conditions, setConditions] = useState("")
+  const [notes, setNotes] = useState("")
+
+  // 비상 연락처 상태
+  const [contacts, setContacts] = useState([
+    { name: "홍길동", relationship: "부모", phone: "010-1234-5678" },
+    { name: "김철수", relationship: "형제", phone: "010-8765-4321" },
   ])
+  const [newContact, setNewContact] = useState({ name: "", relationship: "", phone: "" })
 
-  // Force scroll to top on page load
+  // 인증 상태 확인 및 리디렉션
   useEffect(() => {
-    window.scrollTo(0, 0)
-
-    // Reset any problematic styles
-    document.body.style.overflow = "auto"
-    document.body.style.position = "static"
-    document.body.style.height = "auto"
-    document.body.style.width = "100%"
-
-    // 현재 위치 가져오기
-    getCurrentLocation()
-  }, [])
-
-  const getCurrentLocation = () => {
-    if (!navigator.geolocation) {
-      console.log("이 브라우저에서는 위치 정보를 지원하지 않습니다.")
-      return
+    if (!loading && !isAuthenticated()) {
+      router.push("/login?redirect=/patient-info")
     }
+  }, [loading, isAuthenticated, router])
 
-    navigator.geolocation.getCurrentPosition(
-      // 성공 콜백
-      (position) => {
-        const { latitude, longitude } = position.coords
-        setLocation({ lat: latitude, lng: longitude })
-      },
-      // 오류 콜백
-      (error) => {
-        console.error("위치 정보 가져오기 오류:", error)
-      },
-      // 옵션
-      {
-        enableHighAccuracy: true,
-        timeout: 10000,
-        maximumAge: 0,
-      },
+  // 저장 메시지 타이머
+  useEffect(() => {
+    if (saveMessage) {
+      const timer = setTimeout(() => {
+        setSaveMessage("")
+      }, 3000)
+      return () => clearTimeout(timer)
+    }
+  }, [saveMessage])
+
+  // 정보 저장 함수
+  const saveInfo = () => {
+    setIsSaving(true)
+
+    // 저장 시뮬레이션
+    setTimeout(() => {
+      setIsSaving(false)
+      setSaveMessage("정보가 저장되었습니다")
+      console.log("저장된 정보:", {
+        basic: { name, birthdate, gender, bloodType, height, weight },
+        medical: { allergies, medications, conditions, notes },
+        emergency: { contacts },
+      })
+    }, 1000)
+  }
+
+  // 비상 연락처 추가
+  const addContact = () => {
+    if (newContact.name && newContact.phone) {
+      setContacts([...contacts, { ...newContact }])
+      setNewContact({ name: "", relationship: "", phone: "" })
+    }
+  }
+
+  // 비상 연락처 삭제
+  const removeContact = (index) => {
+    const updatedContacts = [...contacts]
+    updatedContacts.splice(index, 1)
+    setContacts(updatedContacts)
+  }
+
+  // 로딩 중이거나 인증되지 않은 경우 로딩 표시
+  if (loading || !isAuthenticated()) {
+    return (
+      <MobileLayout>
+        <div className="container px-5 py-8 sm:py-12 mx-auto max-w-md flex flex-col items-center justify-center min-h-[60vh]">
+          <Loader2 className="h-8 w-8 animate-spin text-blue-600 mb-4" />
+          <p className="text-gray-600">인증 상태 확인 중...</p>
+        </div>
+      </MobileLayout>
     )
-  }
-
-  const handleChange = (e) => {
-    const { name, value } = e.target
-    setFormData((prev) => ({ ...prev, [name]: value }))
-  }
-
-  const handleSelectChange = (name, value) => {
-    setFormData((prev) => ({ ...prev, [name]: value }))
-  }
-
-  const handleSubmit = async (e) => {
-    e.preventDefault()
-    setError("")
-    setSuccess("")
-
-    if (!formData.name || !formData.birthdate || !formData.gender || !formData.bloodType) {
-      setError("필수 항목을 모두 입력해주세요")
-      return
-    }
-
-    setIsLoading(true)
-
-    try {
-      // 실제 저장 로직 구현
-      console.log("환자 정보:", formData)
-
-      // API 호출 시뮬레이션
-      await new Promise((resolve) => setTimeout(resolve, 1000))
-
-      setSuccess("환자 정보가 성공적으로 저장되었습니다")
-    } catch (err) {
-      setError("정보 저장 중 오류가 발생했습니다")
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  const goToNextTab = () => {
-    if (activeTab === "basic") {
-      setActiveTab("medical")
-    } else if (activeTab === "medical") {
-      setActiveTab("emergency")
-    }
-  }
-
-  const goToPrevTab = () => {
-    if (activeTab === "emergency") {
-      setActiveTab("medical")
-    } else if (activeTab === "medical") {
-      setActiveTab("basic")
-    }
-  }
-
-  const callEmergency = () => {
-    window.location.href = "tel:119"
-  }
-
-  const sendSMS = (phone) => {
-    const message = `[긴급] ${formData.name || "환자"}님이 응급 상황입니다. ${location ? `현재 위치: https://map.naver.com/v5/entry/place/location?lng=${location.lng}&lat=${location.lat}` : "위치 정보 없음"}`
-    window.location.href = `sms:${phone}?body=${encodeURIComponent(message)}`
-  }
-
-  const callContact = (phone) => {
-    window.location.href = `tel:${phone}`
   }
 
   return (
     <MobileLayout>
-      <div className="container px-4 py-8 sm:py-12 mx-auto">
-        <div className="max-w-3xl mx-auto">
-          {/* 119 긴급 전화 버튼 */}
-          <div className="mb-6">
-            <Button
-              onClick={callEmergency}
-              className="w-full h-14 bg-red-600 hover:bg-red-700 rounded-xl flex items-center justify-center gap-3 text-lg font-bold"
-            >
-              <AlertTriangle className="h-6 w-6" />
-              119 긴급 전화
-              <Phone className="h-6 w-6" />
-            </Button>
-          </div>
+      <div className="container px-5 py-8 sm:py-12 mx-auto max-w-md">
+        <div className="text-center mb-8">
+          <h1 className="text-2xl sm:text-3xl font-bold mb-4">환자 정보</h1>
+          <div className="w-24 h-1 bg-gradient-to-r from-red-500 to-red-300 mx-auto rounded-full mb-4"></div>
+          <p className="text-gray-600 max-w-sm mx-auto">
+            응급 상황에서 의료진이 확인할 수 있는 중요한 정보입니다. 정확하게 입력해주세요.
+          </p>
+        </div>
 
-          <div className="text-center mb-8 sm:mb-12">
-            <h1 className="text-2xl sm:text-3xl font-bold mb-4">환자 인적사항</h1>
-            <div className="w-24 h-1 bg-gradient-to-r from-red-500 to-red-300 mx-auto rounded-full mb-4"></div>
-            <p className="text-gray-600 max-w-xl mx-auto text-sm sm:text-base">
-              응급 상황에서 의료진이 확인할 수 있는 중요한 의료 정보를 입력해주세요
-            </p>
-          </div>
+        <Tabs defaultValue="basic" value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid grid-cols-3 mb-6">
+            <TabsTrigger value="basic" className="rounded-l-lg">
+              기본 정보
+            </TabsTrigger>
+            <TabsTrigger value="medical" className="rounded-none">
+              의료 정보
+            </TabsTrigger>
+            <TabsTrigger value="emergency" className="rounded-r-lg">
+              비상 연락처
+            </TabsTrigger>
+          </TabsList>
 
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-3 mb-6 sm:mb-8 bg-gray-100 p-1 rounded-xl">
-              <TabsTrigger
-                value="basic"
-                className="rounded-lg data-[state=active]:bg-white data-[state=active]:text-red-600 data-[state=active]:shadow-sm text-xs sm:text-sm"
-              >
-                <User className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
-                기본 정보
-              </TabsTrigger>
-              <TabsTrigger
-                value="medical"
-                className="rounded-lg data-[state=active]:bg-white data-[state=active]:text-red-600 data-[state=active]:shadow-sm text-xs sm:text-sm"
-              >
-                <FileText className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
-                의료 정보
-              </TabsTrigger>
-              <TabsTrigger
-                value="emergency"
-                className="rounded-lg data-[state=active]:bg-white data-[state=active]:text-red-600 data-[state=active]:shadow-sm text-xs sm:text-sm"
-              >
-                <Phone className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
-                비상 연락처
-              </TabsTrigger>
-            </TabsList>
+          <TabsContent value="basic" className="mt-0">
+            <Card className="border-0 shadow-lg rounded-xl overflow-hidden">
+              <CardContent className="p-6">
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="name">이름</Label>
+                    <Input
+                      id="name"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      placeholder="홍길동"
+                      className="rounded-lg"
+                    />
+                  </div>
 
-            {error && (
-              <Alert variant="destructive" className="mb-6 bg-red-50 border-red-200 rounded-xl">
-                <AlertCircle className="h-4 w-4" />
-                <AlertTitle>오류</AlertTitle>
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
-            )}
+                  <div className="space-y-2">
+                    <Label htmlFor="birthdate">생년월일</Label>
+                    <Input
+                      id="birthdate"
+                      type="date"
+                      value={birthdate}
+                      onChange={(e) => setBirthdate(e.target.value)}
+                      className="rounded-lg"
+                    />
+                  </div>
 
-            {success && (
-              <Alert className="mb-6 bg-green-50 border-green-200 rounded-xl">
-                <AlertCircle className="h-4 w-4 text-green-600" />
-                <AlertTitle className="text-green-800">성공</AlertTitle>
-                <AlertDescription className="text-green-700">{success}</AlertDescription>
-              </Alert>
-            )}
+                  <div className="space-y-2">
+                    <Label htmlFor="gender">성별</Label>
+                    <Select value={gender} onValueChange={setGender}>
+                      <SelectTrigger id="gender" className="rounded-lg">
+                        <SelectValue placeholder="성별 선택" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="male">남성</SelectItem>
+                        <SelectItem value="female">여성</SelectItem>
+                        <SelectItem value="other">기타</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
 
-            <form onSubmit={handleSubmit}>
-              <TabsContent value="basic">
-                <Card className="border-0 shadow-lg rounded-2xl overflow-hidden bg-white">
-                  <CardHeader className="bg-gradient-to-r from-red-50 to-white pb-4">
-                    <CardTitle className="flex items-center text-lg sm:text-xl">
-                      <User className="w-4 h-4 sm:w-5 sm:h-5 mr-2 text-red-500" />
-                      기본 정보
-                    </CardTitle>
-                    <CardDescription>환자의 기본 인적사항을 입력해주세요</CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-4 sm:space-y-5 pt-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="bloodType">혈액형</Label>
+                    <Select value={bloodType} onValueChange={setBloodType}>
+                      <SelectTrigger id="bloodType" className="rounded-lg">
+                        <SelectValue placeholder="혈액형 선택" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="A+">A+</SelectItem>
+                        <SelectItem value="A-">A-</SelectItem>
+                        <SelectItem value="B+">B+</SelectItem>
+                        <SelectItem value="B-">B-</SelectItem>
+                        <SelectItem value="O+">O+</SelectItem>
+                        <SelectItem value="O-">O-</SelectItem>
+                        <SelectItem value="AB+">AB+</SelectItem>
+                        <SelectItem value="AB-">AB-</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="name" className="text-sm font-medium flex items-center">
-                        <User className="w-3 h-3 sm:w-4 sm:h-4 mr-1 text-red-500" />
-                        이름 <span className="text-red-500 ml-1">*</span>
-                      </Label>
+                      <Label htmlFor="height">키 (cm)</Label>
                       <Input
-                        id="name"
-                        name="name"
-                        value={formData.name}
-                        onChange={handleChange}
-                        required
-                        className="h-10 sm:h-12 rounded-xl border-gray-200 focus:border-red-300 focus:ring focus:ring-red-200 focus:ring-opacity-50 transition-all duration-200"
+                        id="height"
+                        type="number"
+                        value={height}
+                        onChange={(e) => setHeight(e.target.value)}
+                        placeholder="170"
+                        className="rounded-lg"
                       />
                     </div>
-
                     <div className="space-y-2">
-                      <Label htmlFor="birthdate" className="text-sm font-medium flex items-center">
-                        <Calendar className="w-3 h-3 sm:w-4 sm:h-4 mr-1 text-red-500" />
-                        생년월일 <span className="text-red-500 ml-1">*</span>
-                      </Label>
+                      <Label htmlFor="weight">몸무게 (kg)</Label>
                       <Input
-                        id="birthdate"
-                        name="birthdate"
-                        type="date"
-                        value={formData.birthdate}
-                        onChange={handleChange}
-                        required
-                        className="h-10 sm:h-12 rounded-xl border-gray-200 focus:border-red-300 focus:ring focus:ring-red-200 focus:ring-opacity-50 transition-all duration-200"
+                        id="weight"
+                        type="number"
+                        value={weight}
+                        onChange={(e) => setWeight(e.target.value)}
+                        placeholder="65"
+                        className="rounded-lg"
                       />
                     </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
 
-                    <div className="space-y-2">
-                      <Label htmlFor="gender" className="text-sm font-medium">
-                        성별 <span className="text-red-500 ml-1">*</span>
-                      </Label>
-                      <Select value={formData.gender} onValueChange={(value) => handleSelectChange("gender", value)}>
-                        <SelectTrigger
-                          id="gender"
-                          className="h-10 sm:h-12 rounded-xl border-gray-200 focus:border-red-300 focus:ring focus:ring-red-200 focus:ring-opacity-50 transition-all duration-200"
-                        >
-                          <SelectValue placeholder="성별 선택" />
-                        </SelectTrigger>
-                        <SelectContent className="rounded-xl bg-white border border-gray-200 shadow-lg z-50">
-                          <SelectItem value="male">남성</SelectItem>
-                          <SelectItem value="female">여성</SelectItem>
-                          <SelectItem value="other">기타</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
+          <TabsContent value="medical" className="mt-0">
+            <Card className="border-0 shadow-lg rounded-xl overflow-hidden">
+              <CardContent className="p-6">
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="allergies">알레르기</Label>
+                    <Textarea
+                      id="allergies"
+                      value={allergies}
+                      onChange={(e) => setAllergies(e.target.value)}
+                      placeholder="페니실린, 견과류, 꽃가루 등"
+                      className="rounded-lg min-h-[80px]"
+                    />
+                  </div>
 
-                    <div className="space-y-2">
-                      <Label htmlFor="bloodType" className="text-sm font-medium flex items-center">
-                        <Droplet className="w-3 h-3 sm:w-4 sm:h-4 mr-1 text-red-500" />
-                        혈액형 <span className="text-red-500 ml-1">*</span>
-                      </Label>
-                      <Select
-                        value={formData.bloodType}
-                        onValueChange={(value) => handleSelectChange("bloodType", value)}
-                      >
-                        <SelectTrigger
-                          id="bloodType"
-                          className="h-10 sm:h-12 rounded-xl border-gray-200 focus:border-red-300 focus:ring focus:ring-red-200 focus:ring-opacity-50 transition-all duration-200"
-                        >
-                          <SelectValue placeholder="혈액형 선택" />
-                        </SelectTrigger>
-                        <SelectContent className="rounded-xl bg-white border border-gray-200 shadow-lg z-50">
-                          <SelectItem value="A+">A+</SelectItem>
-                          <SelectItem value="A-">A-</SelectItem>
-                          <SelectItem value="B+">B+</SelectItem>
-                          <SelectItem value="B-">B-</SelectItem>
-                          <SelectItem value="AB+">AB+</SelectItem>
-                          <SelectItem value="AB-">AB-</SelectItem>
-                          <SelectItem value="O+">O+</SelectItem>
-                          <SelectItem value="O-">O-</SelectItem>
-                          <SelectItem value="Unknown">모름</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </CardContent>
-                  <CardFooter className="flex justify-between pt-4 pb-6">
-                    <Button
-                      variant="outline"
-                      type="button"
-                      onClick={() => window.history.back()}
-                      className="rounded-xl border-gray-200 hover:bg-gray-50 transition-all duration-200 text-xs sm:text-sm h-9 sm:h-10 korean-text-fix"
-                    >
-                      뒤로가기
-                    </Button>
-                    <Button
-                      type="button"
-                      onClick={goToNextTab}
-                      className="rounded-xl bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 text-white shadow-md hover:shadow-lg transition-all duration-200 text-xs sm:text-sm h-9 sm:h-10 korean-text-fix"
-                    >
-                      다음
-                    </Button>
-                  </CardFooter>
-                </Card>
-              </TabsContent>
+                  <div className="space-y-2">
+                    <Label htmlFor="medications">복용 중인 약물</Label>
+                    <Textarea
+                      id="medications"
+                      value={medications}
+                      onChange={(e) => setMedications(e.target.value)}
+                      placeholder="약물명, 용량, 복용 빈도"
+                      className="rounded-lg min-h-[80px]"
+                    />
+                  </div>
 
-              <TabsContent value="medical">
-                <Card className="border-0 shadow-lg rounded-2xl overflow-hidden bg-white">
-                  <CardHeader className="bg-gradient-to-r from-blue-50 to-white pb-4">
-                    <CardTitle className="flex items-center text-lg sm:text-xl">
-                      <FileText className="w-4 h-4 sm:w-5 sm:h-5 mr-2 text-blue-500" />
-                      의료 정보
-                    </CardTitle>
-                    <CardDescription>환자의 의료 정보를 입력해주세요</CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-4 sm:space-y-5 pt-6">
-                    <div className="space-y-2">
-                      <Label htmlFor="allergies" className="text-sm font-medium">
-                        알레르기
-                      </Label>
-                      <Textarea
-                        id="allergies"
-                        name="allergies"
-                        value={formData.allergies}
-                        onChange={handleChange}
-                        placeholder="알레르기가 있다면 입력해주세요"
-                        className="min-h-[80px] sm:min-h-[100px] rounded-xl border-gray-200 focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50 transition-all duration-200"
-                      />
-                    </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="conditions">기저 질환</Label>
+                    <Textarea
+                      id="conditions"
+                      value={conditions}
+                      onChange={(e) => setConditions(e.target.value)}
+                      placeholder="당뇨, 고혈압, 천식 등"
+                      className="rounded-lg min-h-[80px]"
+                    />
+                  </div>
 
-                    <div className="space-y-2">
-                      <Label htmlFor="medications" className="text-sm font-medium">
-                        복용 중인 약물
-                      </Label>
-                      <Textarea
-                        id="medications"
-                        name="medications"
-                        value={formData.medications}
-                        onChange={handleChange}
-                        placeholder="현재 복용 중인 약물을 입력해주세요"
-                        className="min-h-[80px] sm:min-h-[100px] rounded-xl border-gray-200 focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50 transition-all duration-200"
-                      />
-                    </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="notes">추가 참고사항</Label>
+                    <Textarea
+                      id="notes"
+                      value={notes}
+                      onChange={(e) => setNotes(e.target.value)}
+                      placeholder="의료진이 알아야 할 추가 정보"
+                      className="rounded-lg min-h-[80px]"
+                    />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
 
-                    <div className="space-y-2">
-                      <Label htmlFor="conditions" className="text-sm font-medium">
-                        기저질환
-                      </Label>
-                      <Textarea
-                        id="conditions"
-                        name="conditions"
-                        value={formData.conditions}
-                        onChange={handleChange}
-                        placeholder="당뇨, 고혈압 등 기저질환을 입력해주세요"
-                        className="min-h-[80px] sm:min-h-[100px] rounded-xl border-gray-200 focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50 transition-all duration-200"
-                      />
-                    </div>
-                  </CardContent>
-                  <CardFooter className="flex justify-between pt-4 pb-6">
-                    <Button
-                      variant="outline"
-                      type="button"
-                      onClick={goToPrevTab}
-                      className="rounded-xl border-gray-200 hover:bg-gray-50 transition-all duration-200 text-xs sm:text-sm h-9 sm:h-10 korean-text-fix"
-                    >
-                      이전
-                    </Button>
-                    <Button
-                      type="button"
-                      onClick={goToNextTab}
-                      className="rounded-xl bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white shadow-md hover:shadow-lg transition-all duration-200 text-xs sm:text-sm h-9 sm:h-10 korean-text-fix"
-                    >
-                      다음
-                    </Button>
-                  </CardFooter>
-                </Card>
-              </TabsContent>
-
-              <TabsContent value="emergency">
-                <Card className="border-0 shadow-lg rounded-2xl overflow-hidden bg-white mb-6">
-                  <CardHeader className="bg-gradient-to-r from-green-50 to-white pb-4">
-                    <CardTitle className="flex items-center text-lg sm:text-xl">
-                      <Phone className="w-4 h-4 sm:w-5 sm:h-5 mr-2 text-green-500" />
-                      비상 연락처
-                    </CardTitle>
-                    <CardDescription>응급 상황 시 연락할 사람의 정보를 입력해주세요</CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-4 sm:space-y-5 pt-6">
-                    <div className="space-y-2">
-                      <Label htmlFor="emergencyContact" className="text-sm font-medium">
-                        비상 연락처 이름
-                      </Label>
-                      <Input
-                        id="emergencyContact"
-                        name="emergencyContact"
-                        value={formData.emergencyContact}
-                        onChange={handleChange}
-                        placeholder="홍길동"
-                        className="h-10 sm:h-12 rounded-xl border-gray-200 focus:border-green-300 focus:ring focus:ring-green-200 focus:ring-opacity-50 transition-all duration-200"
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="emergencyPhone" className="text-sm font-medium">
-                        비상 연락처 전화번호
-                      </Label>
-                      <Input
-                        id="emergencyPhone"
-                        name="emergencyPhone"
-                        value={formData.emergencyPhone}
-                        onChange={handleChange}
-                        placeholder="010-1234-5678"
-                        className="h-10 sm:h-12 rounded-xl border-gray-200 focus:border-green-300 focus:ring focus:ring-green-200 focus:ring-opacity-50 transition-all duration-200"
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="notes" className="text-sm font-medium">
-                        추가 참고사항
-                      </Label>
-                      <Textarea
-                        id="notes"
-                        name="notes"
-                        value={formData.notes}
-                        onChange={handleChange}
-                        placeholder="의료진이 알아야 할 추가 정보를 입력해주세요"
-                        className="min-h-[80px] sm:min-h-[100px] rounded-xl border-gray-200 focus:border-green-300 focus:ring focus:ring-green-200 focus:ring-opacity-50 transition-all duration-200"
-                      />
-                    </div>
-                  </CardContent>
-                  <CardFooter className="flex justify-between pt-4 pb-6">
-                    <Button
-                      variant="outline"
-                      type="button"
-                      onClick={goToPrevTab}
-                      className="rounded-xl border-gray-200 hover:bg-gray-50 transition-all duration-200 text-xs sm:text-sm h-9 sm:h-10 korean-text-fix"
-                    >
-                      이전
-                    </Button>
-                    <Button
-                      type="submit"
-                      className="rounded-xl bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 text-white shadow-md hover:shadow-lg transition-all duration-200 text-xs sm:text-sm h-9 sm:h-10 korean-text-fix"
-                      disabled={isLoading}
-                    >
-                      <Save className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
-                      {isLoading ? "저장 중..." : "저장하기"}
-                    </Button>
-                  </CardFooter>
-                </Card>
-
-                {/* 등록된 비상 연락처 목록 */}
-                <div className="mb-6">
-                  <h2 className="text-lg font-bold mb-4 flex items-center">
-                    <Phone className="h-5 w-5 mr-2 text-red-500" />
-                    등록된 비상 연락처
-                  </h2>
+          <TabsContent value="emergency" className="mt-0">
+            <Card className="border-0 shadow-lg rounded-xl overflow-hidden">
+              <CardContent className="p-6">
+                <div className="space-y-6">
                   <div className="space-y-4">
-                    {emergencyContacts.map((contact) => (
-                      <Card key={contact.id} className="border-0 shadow-md rounded-xl overflow-hidden bg-white">
-                        <CardContent className="p-4">
-                          <div className="flex justify-between items-center mb-2">
+                    <h3 className="font-medium text-lg">등록된 비상 연락처</h3>
+                    {contacts.length === 0 ? (
+                      <p className="text-gray-500 text-center py-4">등록된 비상 연락처가 없습니다.</p>
+                    ) : (
+                      <div className="space-y-3">
+                        {contacts.map((contact, index) => (
+                          <div
+                            key={index}
+                            className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-100"
+                          >
                             <div>
-                              <h3 className="font-bold">{contact.name}</h3>
+                              <p className="font-medium">{contact.name}</p>
                               <p className="text-sm text-gray-600">{contact.relationship}</p>
+                              <p className="text-sm text-gray-600">{contact.phone}</p>
                             </div>
-                            <div className="flex gap-2">
+                            <div className="flex space-x-2">
                               <Button
-                                onClick={() => sendSMS(contact.phone)}
-                                size="sm"
                                 variant="outline"
-                                className="h-10 w-10 p-0 rounded-full border-gray-200"
+                                size="icon"
+                                className="h-8 w-8 rounded-full bg-green-50 border-green-200 text-green-600 hover:bg-green-100"
+                                onClick={() => window.open(`sms:${contact.phone}`)}
+                                aria-label="문자 보내기"
                               >
-                                <MessageSquare className="h-5 w-5 text-blue-600" />
+                                <MessageSquare className="h-4 w-4" />
                               </Button>
                               <Button
-                                onClick={() => callContact(contact.phone)}
-                                size="sm"
-                                className="h-10 w-10 p-0 rounded-full bg-green-600 hover:bg-green-700"
+                                variant="outline"
+                                size="icon"
+                                className="h-8 w-8 rounded-full bg-blue-50 border-blue-200 text-blue-600 hover:bg-blue-100"
+                                onClick={() => window.open(`tel:${contact.phone}`)}
+                                aria-label="전화 걸기"
                               >
-                                <Phone className="h-5 w-5" />
+                                <Phone className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="icon"
+                                className="h-8 w-8 rounded-full bg-red-50 border-red-200 text-red-600 hover:bg-red-100"
+                                onClick={() => removeContact(index)}
+                                aria-label="연락처 삭제"
+                              >
+                                <Trash2 className="h-4 w-4" />
                               </Button>
                             </div>
                           </div>
-                          <p className="text-sm">{contact.phone}</p>
-                        </CardContent>
-                      </Card>
-                    ))}
+                        ))}
+                      </div>
+                    )}
                   </div>
-                </div>
 
-                {/* 빠른 응급 서비스 */}
-                <div className="mb-6">
-                  <h2 className="text-lg font-bold mb-4 flex items-center">
-                    <Heart className="h-5 w-5 mr-2 text-red-500" />
-                    빠른 응급 서비스
-                  </h2>
-                  <div className="grid grid-cols-2 gap-4">
-                    <Link href="/aed-map">
-                      <Button className="w-full h-16 bg-red-600 hover:bg-red-700 text-white rounded-xl flex flex-col items-center justify-center">
-                        <MapPin className="h-6 w-6 mb-1" />
-                        <span className="text-sm">AED 위치 찾기</span>
-                      </Button>
-                    </Link>
-                    <Link href="/medical-guide">
-                      <Button
-                        variant="outline"
-                        className="w-full h-16 border-purple-200 hover:bg-purple-50 rounded-xl flex flex-col items-center justify-center"
-                      >
-                        <Heart className="h-6 w-6 text-purple-600 mb-1" />
-                        <span className="text-sm">응급처치 가이드</span>
-                      </Button>
-                    </Link>
+                  <div className="space-y-4">
+                    <h3 className="font-medium text-lg">새 연락처 추가</h3>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-2">
+                        <Label htmlFor="contactName">이름</Label>
+                        <Input
+                          id="contactName"
+                          value={newContact.name}
+                          onChange={(e) => setNewContact({ ...newContact, name: e.target.value })}
+                          placeholder="이름"
+                          className="rounded-lg"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="contactRelationship">관계</Label>
+                        <Input
+                          id="contactRelationship"
+                          value={newContact.relationship}
+                          onChange={(e) => setNewContact({ ...newContact, relationship: e.target.value })}
+                          placeholder="관계"
+                          className="rounded-lg"
+                        />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="contactPhone">전화번호</Label>
+                      <div className="flex space-x-2">
+                        <Input
+                          id="contactPhone"
+                          value={newContact.phone}
+                          onChange={(e) => setNewContact({ ...newContact, phone: e.target.value })}
+                          placeholder="010-0000-0000"
+                          className="rounded-lg"
+                        />
+                        <Button
+                          onClick={addContact}
+                          className="rounded-lg bg-blue-600 hover:bg-blue-700 text-white"
+                          disabled={!newContact.name || !newContact.phone}
+                        >
+                          <Plus className="h-4 w-4 mr-1" />
+                          추가
+                        </Button>
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </TabsContent>
-            </form>
-          </Tabs>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
+
+        <div className="mt-8 flex flex-col space-y-4">
+          <Button
+            onClick={saveInfo}
+            disabled={isSaving}
+            className="w-full py-6 rounded-xl bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 text-white shadow-md hover:shadow-lg transition-all duration-200"
+          >
+            {isSaving ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                저장 중...
+              </>
+            ) : (
+              "정보 저장하기"
+            )}
+          </Button>
+
+          {saveMessage && (
+            <div className="bg-green-50 text-green-700 p-3 rounded-lg text-center border border-green-200">
+              {saveMessage}
+            </div>
+          )}
+
+          <div className="flex justify-between">
+            <Button
+              variant="outline"
+              onClick={() =>
+                setActiveTab(activeTab === "basic" ? "emergency" : activeTab === "medical" ? "basic" : "medical")
+              }
+              className="rounded-lg border-gray-200"
+            >
+              {activeTab === "basic" ? "비상 연락처로" : activeTab === "medical" ? "기본 정보로" : "의료 정보로"}
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() =>
+                setActiveTab(activeTab === "basic" ? "medical" : activeTab === "medical" ? "emergency" : "basic")
+              }
+              className="rounded-lg border-gray-200"
+            >
+              {activeTab === "basic" ? "의료 정보로" : activeTab === "medical" ? "비상 연락처로" : "기본 정보로"}
+            </Button>
+          </div>
         </div>
       </div>
     </MobileLayout>
