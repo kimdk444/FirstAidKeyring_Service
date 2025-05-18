@@ -8,34 +8,22 @@ import { AEDInfoCard } from "@/components/aed-info-card"
 import { AEDGuide } from "@/components/aed-guide"
 import { Badge } from "@/components/ui/badge"
 import { useToast } from "@/components/ui/use-toast"
-import { coordsToAddress, calculateDistance } from "@/utils/location-utils"
+import { calculateDistance } from "@/utils/location-utils"
 import Link from "next/link"
 import "./map-styles.css"
-import { AddressSearch } from "@/components/address-search"
 
 // 환경 변수 (NEXT_PUBLIC_ 접두사 필수)
 const NAVER_CLIENT_ID = process.env.NEXT_PUBLIC_NAVER_MAPS_CLIENT_ID
-// 민감한 환경 변수는 클라이언트에서 직접 참조하지 않음
-
-// naver 전역 변수 선언
-// interface CustomWindow extends Window {
-//   naver: any;
-//   navermap_authFailure: () => void;
-// }
-
-// declare const window: CustomWindow;
 
 export default function AEDMapClient() {
   const mapRef = useRef(null)
   const containerRef = useRef(null)
   const [markers, setMarkers] = useState([])
-  const [searchAddr, setSearchAddr] = useState("")
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [aedLocations, setAedLocations] = useState([])
   const [selectedAED, setSelectedAED] = useState(null)
   const [userLocation, setUserLocation] = useState(null)
-  const [userAddress, setUserAddress] = useState(null)
   const [activeView, setActiveView] = useState("map")
   const [showGuide, setShowGuide] = useState(false)
   const [isLocationTracking, setIsLocationTracking] = useState(false)
@@ -142,35 +130,21 @@ export default function AEDMapClient() {
       console.log(`Found ${nextMarkers.length} AED locations`)
 
       // AED 위치 정보를 상태에 저장 (목록 표시용)
-      const aedLocationsData = await Promise.all(
-        list.map(async (info, index) => {
-          // 좌표를 주소로 변환 (역지오코딩)
-          let address = "주소 정보 없음"
-          try {
-            const addressData = await coordsToAddress(info.lon, info.lat)
-            address = addressData || "주소 정보 없음"
-          } catch (err) {
-            console.error("주소 변환 오류:", err)
-          }
-
-          return {
-            id: index + 1,
-            name: info.buildPlace || `AED 위치 ${index + 1}`,
-            address: address,
-            coordinates: {
-              lat: info.lat,
-              lng: info.lon,
-            },
-            isAvailable: true,
-            lastChecked: new Date().toISOString().split("T")[0],
-            locationDetail: info.workTime || "상세 위치 정보 없음",
-            phoneNumber: info.tel || null,
-            is24Hours: info.workTime?.includes("24시간") || false,
-            manager: info.manager || null,
-            distance: null,
-          }
-        }),
-      )
+      const aedLocationsData = list.map((info, index) => {
+        return {
+          id: index + 1,
+          name: info.buildPlace || `AED 위치 ${index + 1}`,
+          coordinates: {
+            lat: info.lat,
+            lng: info.lon,
+          },
+          isAvailable: true,
+          lastChecked: new Date().toISOString().split("T")[0],
+          phoneNumber: info.tel || null,
+          manager: info.manager || null,
+          distance: null,
+        }
+      })
 
       // 거리 계산 및 정렬
       const locationsWithDistance = aedLocationsData
@@ -201,7 +175,6 @@ export default function AEDMapClient() {
     const iw = new window.naver.maps.InfoWindow({
       content: `<div style="padding:8px;max-width:220px;">
         <b>${info.buildPlace}</b><br/>
-        운영시간: ${info.workTime || "정보 없음"}<br/>
         연락처: ${info.tel || "정보 없음"}
       </div>`,
     })
@@ -211,36 +184,6 @@ export default function AEDMapClient() {
     })
 
     return marker
-  }
-
-  /* 3) 주소 검색 → 지오코딩 후 이동 */
-  const handleSearch = async () => {
-    if (!searchAddr.trim()) return
-
-    try {
-      setLoading(true)
-
-      // 서버 API를 통해 지오코딩 요청 (클라이언트 시크릿 보호)
-      const response = await fetch(`/api/geocode?query=${encodeURIComponent(searchAddr)}`)
-      const data = await response.json()
-
-      if (data.status !== "OK" || !data.addresses || data.addresses.length === 0) {
-        alert("검색 결과가 없습니다.")
-        setLoading(false)
-        return
-      }
-
-      const first = data.addresses[0]
-      const latLng = new window.naver.maps.LatLng(first.y, first.x)
-      mapRef.current.setCenter(latLng)
-      mapRef.current.setZoom(15)
-      fetchAndDraw(latLng)
-    } catch (err) {
-      console.error("Search error:", err)
-      alert("주소 검색 중 오류가 발생했습니다.")
-    } finally {
-      setLoading(false)
-    }
   }
 
   // 현재 위치로 이동
@@ -331,15 +274,13 @@ export default function AEDMapClient() {
       })
 
       navigator.geolocation.getCurrentPosition(
-        async (position) => {
+        (position) => {
           const lat = position.coords.latitude
           const lng = position.coords.longitude
           const userLocation = new window.naver.maps.LatLng(lat, lng)
           mapRef.current.setCenter(userLocation)
           mapRef.current.setZoom(15)
           fetchAndDraw(userLocation)
-          const address = await coordsToAddress(lng, lat)
-          setUserAddress(address)
           resolve(position)
         },
         (error) => {
@@ -389,21 +330,13 @@ export default function AEDMapClient() {
     })
 
     watchIdRef.current = navigator.geolocation.watchPosition(
-      async (position) => {
+      (position) => {
         const newLocation = {
           lat: position.coords.latitude,
           lng: position.coords.longitude,
         }
 
         setUserLocation(newLocation)
-
-        // 주소 정보 가져오기
-        try {
-          const address = await coordsToAddress(newLocation.lng, newLocation.lat)
-          setUserAddress(address)
-        } catch (err) {
-          console.error("Failed to get address:", err)
-        }
 
         if (mapInstanceRef.current) {
           // 사용자 위치 마커 업데이트
@@ -492,19 +425,6 @@ export default function AEDMapClient() {
           lng: position.coords.longitude,
         }
         console.log("User location obtained:", location)
-
-        // 주소 정보 가져오기
-        try {
-          const address = await coordsToAddress(location.lng, location.lat)
-          setUserAddress(address)
-
-          toast({
-            title: "위치 확인 성공",
-            description: `현재 위치: ${address}`,
-          })
-        } catch (err) {
-          console.error("Failed to get address:", err)
-        }
       } catch (err) {
         console.error("Failed to get user location:", err)
         // 서울 시청을 기본 위치로 설정
@@ -540,17 +460,6 @@ export default function AEDMapClient() {
 
       const map = new window.naver.maps.Map(containerRef.current, mapOptions)
       mapInstanceRef.current = map
-
-      // 지도 클릭 이벤트 처리
-      window.naver.maps.Event.addListener(map, "click", async (e) => {
-        const clickedLatLng = e.coord
-        console.log("Reverse geocoding 요청:", clickedLatLng.x, clickedLatLng.y)
-        const address = await coordsToAddress(clickedLatLng.x, clickedLatLng.y)
-        toast({
-          title: "선택한 위치",
-          description: address,
-        })
-      })
 
       // AED 위치 데이터 가져오기
       const locations = await fetchAEDLocations(location.lat, location.lng)
@@ -692,120 +601,8 @@ export default function AEDMapClient() {
     }
   }, [selectedAED, aedLocations, createMarkers])
 
-  // 주소 검색 처리
-  const handleSearchOld = useCallback(
-    async (coordinates) => {
-      if (!mapInstanceRef.current) return
-
-      setIsLoading(true)
-
-      try {
-        // 위치 추적 중지
-        if (isLocationTracking) {
-          stopLocationTracking()
-        }
-
-        // 지도 중심 이동
-        mapInstanceRef.current.setCenter(new window.naver.maps.LatLng(coordinates.lat, coordinates.lng))
-
-        // 주소 정보 가져오기
-        try {
-          const address = await coordsToAddress(coordinates.lng, coordinates.lat)
-          setUserAddress(address)
-
-          toast({
-            title: "검색 완료",
-            description: `검색 위치: ${address}`,
-          })
-        } catch (err) {
-          console.error("Failed to get address:", err)
-        }
-
-        // 새 위치 기준으로 AED 위치 다시 가져오기
-        const locations = await fetchAEDLocations(coordinates.lat, coordinates.lng)
-
-        // 거리 계산 및 정렬
-        const locationsWithDistance = locations
-          .map((aed) => ({
-            ...aed,
-            distance: calculateDistance(coordinates.lat, coordinates.lng, aed.coordinates.lat, aed.coordinates.lng),
-          }))
-          .sort((a, b) => a.distance - b.distance)
-
-        setAedLocations(locationsWithDistance)
-
-        // 마커 업데이트
-        createMarkers(mapInstanceRef.current, locationsWithDistance)
-
-        // 선택된 AED 초기화
-        setSelectedAED(null)
-
-        // 현재 시간 업데이트
-        setLastUpdated(new Date())
-      } catch (err) {
-        console.error("Search error:", err)
-        toast({
-          title: "검색 오류",
-          description: "위치 검색 중 오류가 발생했습니다.",
-          variant: "destructive",
-        })
-      } finally {
-        setIsLoading(false)
-      }
-    },
-    [mapInstanceRef, fetchAEDLocations, createMarkers, isLocationTracking, stopLocationTracking, toast],
-  )
-
-  // 검색 초기화
-  const handleClearSearch = useCallback(async () => {
-    if (!userLocation || !mapInstanceRef.current) return
-
-    setIsLoading(true)
-
-    try {
-      // 위치 추적 중지
-      if (isLocationTracking) {
-        stopLocationTracking()
-      }
-
-      // 사용자 위치로 지도 이동
-      mapInstanceRef.current.setCenter(new window.naver.maps.LatLng(userLocation.lat, userLocation.lng))
-
-      // 사용자 위치 기준으로 AED 위치 다시 가져오기
-      const locations = await fetchAEDLocations(userLocation.lat, userLocation.lng)
-
-      // 거리 계산 및 정렬
-      const locationsWithDistance = locations
-        .map((aed) => ({
-          ...aed,
-          distance: calculateDistance(userLocation.lat, userLocation.lng, aed.coordinates.lat, aed.coordinates.lng),
-        }))
-        .sort((a, b) => a.distance - b.distance)
-
-      setAedLocations(locationsWithDistance)
-
-      // 마커 업데이트
-      createMarkers(mapInstanceRef.current, locationsWithDistance)
-
-      // 선택된 AED 초기화
-      setSelectedAED(null)
-
-      // 현재 시간 업데이트
-      setLastUpdated(new Date())
-    } catch (err) {
-      console.error("Clear search error:", err)
-      toast({
-        title: "초기화 오류",
-        description: "검색 초기화 중 오류가 발생했습니다.",
-        variant: "destructive",
-      })
-    } finally {
-      setIsLoading(false)
-    }
-  }, [userLocation, mapInstanceRef, fetchAEDLocations, createMarkers, isLocationTracking, stopLocationTracking, toast])
-
   // 현재 위치로 이동
-  const handleMoveToCurrentLocationOld = useCallback(async () => {
+  const handleMoveToCurrentLocation = useCallback(async () => {
     try {
       setIsLoading(true)
 
@@ -821,19 +618,6 @@ export default function AEDMapClient() {
       }
 
       setUserLocation(location)
-
-      // 주소 정보 가져오기
-      try {
-        const address = await coordsToAddress(location.lng, location.lat)
-        setUserAddress(address)
-
-        toast({
-          title: "위치 이동 완료",
-          description: `현재 위치: ${address}`,
-        })
-      } catch (err) {
-        console.error("Failed to get address:", err)
-      }
 
       if (mapInstanceRef.current) {
         mapInstanceRef.current.setCenter(new window.naver.maps.LatLng(location.lat, location.lng))
@@ -965,8 +749,6 @@ export default function AEDMapClient() {
 
   return (
     <div className="flex flex-col h-[calc(100vh-var(--app-bottom-nav-height))]">
-      {/* 지도 SDK 동적 로드 */}
-
       {/* 헤더 */}
       <div className="bg-white p-3 shadow-sm flex items-center justify-between z-10">
         <h1 className="text-lg font-bold">AED 찾기</h1>
@@ -1004,32 +786,7 @@ export default function AEDMapClient() {
       <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-0 overflow-hidden">
         {/* 지도 영역 */}
         <div className={`relative md:col-span-2 ${activeView === "list" ? "hidden md:block" : "block"}`}>
-          {/* 검색 바 */}
-          <div className="search-container">
-            <AddressSearch
-              onSearch={(result) => {
-                const latLng = new window.naver.maps.LatLng(result.lat, result.lng)
-                mapRef.current.setCenter(latLng)
-                mapRef.current.setZoom(15)
-                fetchAndDraw(latLng)
-                setUserAddress(result.address)
-              }}
-              onClear={handleClearSearch}
-              isLoading={isLoading}
-            />
-          </div>
-
-          {/* 현재 위치 주소 표시 */}
-          {userAddress && (
-            <div className="current-location-address bg-white px-3 py-2 rounded-md shadow-sm flex items-center absolute top-20 left-4 right-4 z-10 max-w-md mx-auto">
-              <MapPin className="h-4 w-4 mr-2 text-blue-500 flex-shrink-0" />
-              <span className="text-sm text-gray-700 truncate flex-1">{userAddress}</span>
-              <div className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full ml-2">현재 위치</div>
-            </div>
-          )}
-
           {/* 지도 */}
-          {/* <div ref={mapRef} className="map-container h-full" /> */}
           <div ref={containerRef} className="flex-1 w-full app-map" style={{ minHeight: "calc(100vh - 120px)" }} />
 
           {/* 현재 위치 버튼 */}
@@ -1038,7 +795,7 @@ export default function AEDMapClient() {
               variant="secondary"
               size="icon"
               className="control-button shadow-md"
-              onClick={handleMoveToCurrentLocationOld}
+              onClick={handleMoveToCurrentLocation}
               disabled={isLoading}
               title="현재 위치로 이동"
             >
@@ -1144,17 +901,6 @@ export default function AEDMapClient() {
               </div>
             </div>
 
-            {/* 현재 위치 주소 표시 */}
-            {userAddress && (
-              <div className="mb-4 p-3 bg-blue-50 rounded-md flex items-start">
-                <MapPin className="h-4 w-4 mr-2 mt-0.5 text-blue-500 flex-shrink-0" />
-                <div>
-                  <p className="text-sm font-medium text-blue-700">현재 위치</p>
-                  <p className="text-sm text-gray-700">{userAddress}</p>
-                </div>
-              </div>
-            )}
-
             {/* 위치 추적 상태 표시 */}
             {isLocationTracking && (
               <div className="mb-4">
@@ -1168,7 +914,7 @@ export default function AEDMapClient() {
             {aedLocations.length === 0 ? (
               <div className="text-center py-8">
                 <p className="text-gray-500">주변에 AED가 없습니다.</p>
-                <Button variant="outline" className="mt-4" onClick={handleMoveToCurrentLocationOld}>
+                <Button variant="outline" className="mt-4" onClick={handleMoveToCurrentLocation}>
                   <MapPin className="h-4 w-4 mr-2" />
                   현재 위치에서 다시 검색
                 </Button>

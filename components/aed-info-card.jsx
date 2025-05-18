@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { MapPin, Navigation, Phone } from "lucide-react"
+import { Navigation, Phone } from "lucide-react"
 import { formatDistance } from "@/utils/location-utils"
 
 export function AEDInfoCard({ aed, onNavigate, isSelected = false }) {
@@ -22,11 +22,6 @@ export function AEDInfoCard({ aed, onNavigate, isSelected = false }) {
         </div>
 
         <div className="text-gray-600 mb-3">
-          <div className="flex items-start mb-1">
-            <MapPin className="h-4 w-4 mr-2 mt-1 flex-shrink-0" />
-            <p>{aed.address && aed.address !== "주소 정보 없음" ? aed.address : "상세 주소 정보가 없습니다"}</p>
-          </div>
-
           <div className="flex items-center mt-2">
             <Badge variant="outline" className="mr-2">
               {distance}
