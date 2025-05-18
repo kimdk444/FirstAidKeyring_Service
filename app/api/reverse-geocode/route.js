@@ -24,8 +24,12 @@ export async function GET(request) {
       return NextResponse.json({ error: "API 키 설정 오류" }, { status: 500 })
     }
 
+    console.log(`역지오코딩 요청: 경도=${longitude}, 위도=${latitude}`)
+
     // 네이버 지도 API 호출
-    const url = `https://naveropenapi.apigw.ntruss.com/map-reversegeocode/v2/gc?coords=${longitude},${latitude}&output=json`
+    const url = `https://naveropenapi.apigw.ntruss.com/map-reversegeocode/v2/gc?coords=${longitude},${latitude}&output=json&orders=roadaddr,addr`
+
+    console.log("API 요청 URL:", url)
 
     const response = await fetch(url, {
       headers: {
@@ -35,13 +39,16 @@ export async function GET(request) {
     })
 
     if (!response.ok) {
+      console.error(`네이버 API 응답 오류: ${response.status} ${response.statusText}`)
       throw new Error(`API 응답 오류: ${response.status}`)
     }
 
     const data = await response.json()
+    console.log("네이버 API 응답:", JSON.stringify(data).substring(0, 500) + "...")
+
     return NextResponse.json(data)
   } catch (error) {
     console.error("역지오코딩 오류:", error)
-    return NextResponse.json({ error: "주소 변환 중 오류가 발생했습니다." }, { status: 500 })
+    return NextResponse.json({ error: "주소 변환 중 오류가 발생했습니다.", message: error.message }, { status: 500 })
   }
 }
