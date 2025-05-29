@@ -562,7 +562,7 @@ export default function PatientInfoPage() {
 
         {/* 저장 버튼 */}
         <div className="mt-6">
-          <Button onClick={savePatientInfo} className="w-full" size="lg">
+          <Button onClick={savePatientInfo} className="w-full" size="lg" variant="outline">
             환자 정보 저장
           </Button>
         </div>
