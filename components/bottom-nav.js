@@ -51,8 +51,8 @@ export function BottomNav() {
   ]
 
   return (
-    <nav className="mobile-nav-fixed h-[var(--app-bottom-nav-height)] border-t border-gray-200 relative">
-      <div className="grid grid-cols-4 h-full">
+    <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50">
+      <div className="grid grid-cols-4 h-16">
         {navItems.map((item) => (
           <Link
             key={item.href}
@@ -60,7 +60,7 @@ export function BottomNav() {
             prefetch={true}
             className={`flex flex-col items-center justify-center ${
               item.active ? "text-red-600" : "text-gray-500 hover:text-gray-700"
-            } slide-button`}
+            } transition-colors`}
             onClick={(e) => {
               if (item.href === "/" && pathname === "/") {
                 e.preventDefault()

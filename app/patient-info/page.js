@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useAuth } from "@/contexts/auth-context"
+import { BottomNav } from "@/components/bottom-nav"
 import {
   User,
   FileText,
@@ -60,10 +61,9 @@ export default function PatientInfoPage() {
     birthDate: "",
     gender: "",
     bloodType: "",
-    // height and weight are not in the new design
   })
 
-  // 의료 정보 상태 (simplified based on new design)
+  // 의료 정보 상태
   const [medicalInfo, setMedicalInfo] = useState({
     allergies: "",
     medications: "",
@@ -79,7 +79,7 @@ export default function PatientInfoPage() {
   const [newContact, setNewContact] = useState({
     name: "",
     phone: "",
-    notes: "", // "추가 참고사항"
+    notes: "",
   })
 
   useEffect(() => {
@@ -147,7 +147,6 @@ export default function PatientInfoPage() {
     }
     localStorage.setItem("patientInfo", JSON.stringify(patientData))
     alert("환자 정보가 저장되었습니다.")
-    // Optionally navigate away or show success message
   }
 
   const navigateTabs = (direction) => {
@@ -163,7 +162,7 @@ export default function PatientInfoPage() {
   const CurrentTabIcon = tabConfig[activeTab].icon
 
   return (
-    <div className="min-h-screen bg-white flex flex-col">
+    <div className="min-h-screen bg-white flex flex-col pb-20">
       {/* 119 Emergency Call Button */}
       <button
         onClick={() => (window.location.href = "tel:119")}
@@ -232,7 +231,7 @@ export default function PatientInfoPage() {
                 </Label>
                 <Input
                   id="birthDate"
-                  type="text" // Changed to text to allow custom placeholder
+                  type="text"
                   value={basicInfo.birthDate}
                   onChange={(e) => handleInputChange(setBasicInfo, "birthDate", e.target.value)}
                   placeholder="YYYY-MM-DD"
@@ -525,7 +524,8 @@ export default function PatientInfoPage() {
           )}
         </div>
       </div>
-      {/* BottomNav removed as it's not in the new design */}
+
+      <BottomNav />
     </div>
   )
 }
