@@ -6,19 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { HeartLogo } from "@/components/heart-logo"
 import { SplashScreen } from "@/components/splash-screen"
-import {
-  MapPin,
-  Heart,
-  User,
-  AlertTriangle,
-  Shield,
-  CheckCircle2,
-  Smartphone,
-  ArrowRight,
-  Info,
-  Wifi,
-  Settings,
-} from "lucide-react"
+import { MapPin, Heart, User, AlertTriangle, Shield, CheckCircle2, Info, Settings } from "lucide-react"
 import Link from "next/link"
 import { useScreenSize } from "@/utils/responsive-utils"
 import { isFirstAppLaunch, markAppLaunched } from "@/utils/app-state-utils"
@@ -135,35 +123,6 @@ export default function Home() {
           </p>
         </div>
 
-        {/* NFC 태그 스캔 배너 */}
-        <div
-          className={`mb-6 sm:mb-8 transition-all duration-700 delay-500 ${
-            showWelcome ? "opacity-100 transform-none" : "opacity-0 translate-y-4"
-          }`}
-        >
-          <Card className="border-0 shadow-lg rounded-2xl overflow-hidden bg-gradient-to-r from-red-600 to-red-500 hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02]">
-            <CardContent className="p-4 sm:p-6 text-white">
-              <div className="flex items-center mb-2 sm:mb-3">
-                <Smartphone className="w-5 h-5 sm:w-6 sm:h-6 mr-2 sm:mr-3" />
-                <h2 className="text-lg sm:text-xl font-bold">NFC 태그 스캔하기</h2>
-              </div>
-              <p className="text-xs sm:text-sm opacity-90 mb-3 sm:mb-4">
-                스마트폰을 NFC 키링에 가까이 대면 저장된 의료 정보를 즉시 확인할 수 있습니다. 아래 버튼을 눌러 NFC
-                스캔을 시작하세요.
-              </p>
-              <Link href="/scan">
-                <Button
-                  variant="outline"
-                  className="w-full bg-white text-red-600 hover:bg-red-50 border-0 shadow-sm flex items-center justify-center group h-10 sm:h-12"
-                >
-                  <Wifi className="w-4 h-4 mr-2 group-hover:animate-pulse" />
-                  NFC 태그 스캔하기
-                </Button>
-              </Link>
-            </CardContent>
-          </Card>
-        </div>
-
         {/* NFC 키링 사용법 안내 */}
         <div
           className={`mb-6 sm:mb-8 transition-all duration-700 delay-700 ${
@@ -225,8 +184,7 @@ export default function Home() {
                     size="sm"
                     className="text-red-600 hover:text-red-700 p-0 h-auto flex items-center group text-xs sm:text-sm"
                   >
-                    의료 정보 등록하기{" "}
-                    <ArrowRight className="w-3 h-3 ml-1 group-hover:translate-x-1 transition-transform duration-300" />
+                    의료 정보 등록하기
                   </Button>
                 </Link>
               </div>

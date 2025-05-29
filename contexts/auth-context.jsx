@@ -4,7 +4,7 @@ import { createContext, useContext, useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 
 // 인증 컨텍스트 생성
-const AuthContext = createContext(undefined)
+const AuthContext = createContext(null)
 
 // 토큰 만료 시간 (7일)
 const TOKEN_EXPIRY_DAYS = 7
@@ -19,6 +19,8 @@ export function AuthProvider({ children }) {
   // 컴포넌트 마운트 시 로컬 스토리지에서 사용자 정보 불러오기
   useEffect(() => {
     const loadUserData = () => {
+      if (typeof window === "undefined") return
+
       const storedUser = localStorage.getItem("user")
       const storedToken = localStorage.getItem("authToken")
       const tokenExpiry = localStorage.getItem("tokenExpiry")
@@ -66,6 +68,7 @@ export function AuthProvider({ children }) {
 
   // 인증 데이터 초기화 함수
   const clearAuthData = () => {
+    if (typeof window === "undefined") return
     localStorage.removeItem("user")
     localStorage.removeItem("authToken")
     localStorage.removeItem("tokenExpiry")
@@ -74,6 +77,8 @@ export function AuthProvider({ children }) {
 
   // 로그인 함수
   const login = (userData, rememberMe = true) => {
+    if (typeof window === "undefined") return
+
     setUser(userData)
     setAutoLogin(rememberMe)
 
@@ -111,6 +116,7 @@ export function AuthProvider({ children }) {
 
   // 자동 로그인 설정 변경 함수
   const setRememberMe = (value) => {
+    if (typeof window === "undefined") return
     setAutoLogin(value)
     localStorage.setItem("autoLogin", value.toString())
   }
@@ -131,7 +137,7 @@ export function AuthProvider({ children }) {
 // 인증 컨텍스트 사용을 위한 훅
 export function useAuth() {
   const context = useContext(AuthContext)
-  if (context === undefined) {
+  if (context === null) {
     throw new Error("useAuth must be used within an AuthProvider")
   }
   return context

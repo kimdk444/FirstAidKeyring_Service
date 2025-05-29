@@ -803,34 +803,6 @@ export default function AEDMapClient() {
             </Button>
 
             <Button
-              variant={isLocationTracking ? "destructive" : "secondary"}
-              size="icon"
-              className="control-button shadow-md mt-2"
-              onClick={toggleLocationTracking}
-              disabled={isLoading}
-              title={isLocationTracking ? "위치 추적 중지" : "위치 추적 시작"}
-            >
-              {isLocationTracking ? (
-                <X className="h-5 w-5" />
-              ) : (
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <circle cx="12" cy="12" r="10" />
-                  <circle cx="12" cy="12" r="4" />
-                </svg>
-              )}
-            </Button>
-
-            <Button
               variant="secondary"
               size="icon"
               className="control-button shadow-md mt-2"

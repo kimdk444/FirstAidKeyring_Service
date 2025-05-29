@@ -3,10 +3,8 @@
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Switch } from "@/components/ui/switch"
-import { Label } from "@/components/ui/label"
 import { useRouter } from "next/navigation"
-import { ArrowLeft, Bell, Trash2, User, MapPin, Lock, LogOut, AlertTriangle } from "lucide-react"
+import { ArrowLeft, User, Lock, LogOut } from "lucide-react"
 import Link from "next/link"
 import {
   AlertDialog,
@@ -18,41 +16,17 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
-// 기존 import 유지하고 Checkbox 추가
-import { Checkbox } from "@/components/ui/checkbox"
+import { AlertTriangle } from "lucide-react"
 
 export default function SettingsPage() {
   const router = useRouter()
-  const [settings, setSettings] = useState({
-    emergencyAlerts: true,
-    medicationReminders: true,
-    locationServices: true,
-    autoBackup: false,
-    privacyMode: false,
-  })
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
-
-  const handleToggle = (setting) => {
-    setSettings((prev) => ({
-      ...prev,
-      [setting]: !prev[setting],
-    }))
-  }
 
   const handleDeleteAccount = () => {
     // 실제 계정 삭제 로직 구현
     console.log("계정 삭제 처리")
     // 삭제 후 로그인 페이지로 리디렉션
     router.push("/login")
-  }
-
-  // 임시 auth 객체 (실제 환경에서는 context 또는 zustand/jotai 등 사용)
-  const auth = {
-    autoLogin: false, // 초기값 설정
-    setRememberMe: (checked) => {
-      console.log("자동 로그인 설정:", checked)
-      // 실제 로직에서는 쿠키, 로컬 스토리지 등에 저장
-    },
   }
 
   return (
@@ -66,78 +40,6 @@ export default function SettingsPage() {
       </div>
 
       <div className="space-y-6">
-        <Card className="border-0 shadow-sm">
-          <CardHeader className="pb-2">
-            <CardTitle className="flex items-center text-lg">
-              <Bell className="h-5 w-5 mr-2 text-red-500" />
-              알림 설정
-            </CardTitle>
-            <CardDescription>알림 및 리마인더 설정을 관리합니다</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4 pt-0">
-            <div className="flex items-center justify-between py-2 border-b">
-              <Label htmlFor="emergency-alerts" className="flex-1 font-medium">
-                응급 상황 알림
-                <p className="text-xs text-gray-500 font-normal mt-1">주변 응급 상황 발생 시 알림을 받습니다</p>
-              </Label>
-              <Switch
-                id="emergency-alerts"
-                checked={settings.emergencyAlerts}
-                onCheckedChange={() => handleToggle("emergencyAlerts")}
-                className="data-[state=checked]:bg-red-600"
-              />
-            </div>
-            <div className="flex items-center justify-between py-2">
-              <Label htmlFor="medication-reminders" className="flex-1 font-medium">
-                복약 알림
-                <p className="text-xs text-gray-500 font-normal mt-1">약 복용 시간에 알림을 받습니다</p>
-              </Label>
-              <Switch
-                id="medication-reminders"
-                checked={settings.medicationReminders}
-                onCheckedChange={() => handleToggle("medicationReminders")}
-                className="data-[state=checked]:bg-red-600"
-              />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border-0 shadow-sm">
-          <CardHeader className="pb-2">
-            <CardTitle className="flex items-center text-lg">
-              <MapPin className="h-5 w-5 mr-2 text-blue-500" />
-              위치 및 개인정보
-            </CardTitle>
-            <CardDescription>위치 서비스 및 개인정보 설정을 관리합니다</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4 pt-0">
-            <div className="flex items-center justify-between py-2 border-b">
-              <Label htmlFor="location-services" className="flex-1 font-medium">
-                위치 서비스
-                <p className="text-xs text-gray-500 font-normal mt-1">가까운 AED 위치를 찾기 위해 사용됩니다</p>
-              </Label>
-              <Switch
-                id="location-services"
-                checked={settings.locationServices}
-                onCheckedChange={() => handleToggle("locationServices")}
-                className="data-[state=checked]:bg-blue-600"
-              />
-            </div>
-            <div className="flex items-center justify-between py-2">
-              <Label htmlFor="privacy-mode" className="flex-1 font-medium">
-                개인정보 보호 모드
-                <p className="text-xs text-gray-500 font-normal mt-1">민감한 의료 정보를 잠금 상태로 유지합니다</p>
-              </Label>
-              <Switch
-                id="privacy-mode"
-                checked={settings.privacyMode}
-                onCheckedChange={() => handleToggle("privacyMode")}
-                className="data-[state=checked]:bg-blue-600"
-              />
-            </div>
-          </CardContent>
-        </Card>
-
         <Card className="border-0 shadow-sm">
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center text-lg">
@@ -164,34 +66,9 @@ export default function SettingsPage() {
               className="w-full justify-start mt-4"
               onClick={() => setIsDeleteDialogOpen(true)}
             >
-              <Trash2 className="h-4 w-4 mr-2" />
+              <AlertTriangle className="h-4 w-4 mr-2" />
               계정 삭제
             </Button>
-          </CardContent>
-        </Card>
-        <Card className="border-0 shadow-sm">
-          <CardHeader className="pb-2">
-            <CardTitle className="flex items-center text-lg">
-              <Lock className="h-5 w-5 mr-2 text-orange-500" />
-              로그인 설정
-            </CardTitle>
-            <CardDescription>로그인 관련 설정을 관리합니다</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4 pt-0">
-            <div className="space-y-4">
-              <div className="flex items-center space-x-2">
-                <Checkbox
-                  id="auto-login"
-                  checked={auth.autoLogin}
-                  onCheckedChange={auth.setRememberMe}
-                  className="data-[state=checked]:bg-red-600 data-[state=checked]:border-red-600"
-                />
-                <Label htmlFor="auto-login" className="text-sm text-gray-600 cursor-pointer">
-                  로그인 상태 유지
-                </Label>
-              </div>
-              <p className="text-xs text-gray-500">활성화하면 브라우저를 닫았다 열어도 로그인 상태가 유지됩니다.</p>
-            </div>
           </CardContent>
         </Card>
       </div>
