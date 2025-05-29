@@ -69,7 +69,6 @@ export default function PatientInfoPage() {
     medications: "",
     conditions: "",
     recentSurgeries: "",
-    familyHistory: "",
     organDonation: "",
     specialNotes: "",
   })
@@ -355,18 +354,6 @@ export default function PatientInfoPage() {
                   id="recentSurgeries"
                   value={medicalInfo.recentSurgeries}
                   onChange={(e) => handleInputChange(setMedicalInfo, "recentSurgeries", e.target.value)}
-                  placeholder=""
-                  className="mt-1 min-h-[100px]"
-                />
-              </div>
-              <div>
-                <Label htmlFor="familyHistory" className="font-medium text-gray-700">
-                  가족력
-                </Label>
-                <Textarea
-                  id="familyHistory"
-                  value={medicalInfo.familyHistory}
-                  onChange={(e) => handleInputChange(setMedicalInfo, "familyHistory", e.target.value)}
                   placeholder=""
                   className="mt-1 min-h-[100px]"
                 />
